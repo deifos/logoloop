@@ -308,7 +308,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="text-center py-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">LogoLoop</h1>
@@ -317,10 +317,10 @@ export default function Home() {
 
       {/* Main Layout - 2 Columns */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* Left Column - Configuration */}
-          <div className="space-y-6">
+          <div className="lg:col-span-1 space-y-6">
             {/* Upload Section */}
             <Card>
               <CardBody className="p-6">
@@ -449,7 +449,7 @@ export default function Home() {
           </div>
 
           {/* Right Column - Preview/Video */}
-          <div>
+          <div className="lg:col-span-2">
             <Card>
               <CardBody className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
