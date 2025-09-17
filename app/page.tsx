@@ -12,6 +12,7 @@ export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [logoSize, setLogoSize] = useState<number>(15);
   const [enableVariations, setEnableVariations] = useState<boolean>(true);
+  const [enableStickerBorder, setEnableStickerBorder] = useState<boolean>(false);
 
   const {
     isProcessing,
@@ -40,7 +41,7 @@ export default function Home() {
     if (!uploadedFile) return;
 
     try {
-      await generateVideo(uploadedFile, logoSize, enableVariations);
+      await generateVideo(uploadedFile, logoSize, enableVariations, enableStickerBorder);
     } catch (error: any) {
       alert(`Video generation failed: ${error.message}`);
     }
@@ -76,9 +77,11 @@ export default function Home() {
               <SettingsPanel
                 logoSize={logoSize}
                 enableVariations={enableVariations}
+                enableStickerBorder={enableStickerBorder}
                 isProcessing={isProcessing}
                 onLogoSizeChange={setLogoSize}
                 onVariationsChange={setEnableVariations}
+                onStickerBorderChange={setEnableStickerBorder}
                 onGenerateVideo={handleGenerateVideo}
               />
             )}
@@ -108,6 +111,7 @@ export default function Home() {
                       logoFile={uploadedFile}
                       logoSize={logoSize}
                       enableVariations={enableVariations}
+                      enableStickerBorder={enableStickerBorder}
                     />
                   )}
                 </div>

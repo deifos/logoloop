@@ -53,7 +53,7 @@ export default function VideoPlayer({
             className="w-full"
             onPress={onDownload}
           >
-            Download Video (.webm)
+            Download Video (.mp4)
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Button

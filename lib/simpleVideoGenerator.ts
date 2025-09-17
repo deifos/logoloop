@@ -13,8 +13,9 @@ export interface SimpleVideoOptions {
   duration?: number;
   width?: number;
   height?: number;
-  logoSize?: number; // Logo size as percentage (1-20)
+  logoSize?: number; // Logo size as percentage (1-50)
   enableVariations?: boolean; // Whether to enable random variations
+  enableStickerBorder?: boolean; // Whether to add sticker border effect
   onProgress?: (progress: number) => void;
 }
 
@@ -34,8 +35,9 @@ export class SimpleVideoGenerator {
       duration = 5,
       width = 640,
       height = 480,
-      logoSize = 8, // Default 8% size
+      logoSize = 15, // Default 15% size
       enableVariations = true,
+      enableStickerBorder = false,
       onProgress
     } = options;
 
@@ -46,10 +48,10 @@ export class SimpleVideoGenerator {
     this.canvas.height = height;
     console.log(`📐 Canvas size: ${width}x${height}`);
 
-    // Create output with WebM format for VP8
+    // Create output with MP4 format for H.264
     const target = new BufferTarget();
     const output = new Output({
-      format: new WebMOutputFormat(),
+      format: new Mp4OutputFormat(),
       target
     });
 
@@ -58,9 +60,9 @@ export class SimpleVideoGenerator {
     const logoImage = await this.loadImage(logoFile);
     console.log('✅ Logo loaded');
 
-    // Create video source with VP8 (WebM) since it's supported
+    // Create video source with AVC/H.264 (MP4)
     const videoSource = new CanvasSource(this.canvas, {
-      codec: 'vp8',
+      codec: 'avc',
       bitrate: QUALITY_HIGH
     });
 
@@ -88,7 +90,7 @@ export class SimpleVideoGenerator {
       console.log(`Frame ${frame + 1}/${totalFrames} - Background: ${backgroundPath}`);
 
       // Draw frame
-      await this.drawFrame(backgroundPath, logoImage, logoSize, enableVariations, frame);
+      await this.drawFrame(backgroundPath, logoImage, logoSize, enableVariations, enableStickerBorder, frame);
 
       // Add frame to video
       await videoSource.add(timestamp, frameInterval);
@@ -119,7 +121,7 @@ export class SimpleVideoGenerator {
     });
   }
 
-  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableVariations: boolean, frameIndex: number): Promise<void> {
+  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableVariations: boolean, enableStickerBorder: boolean, frameIndex: number): Promise<void> {
     return new Promise((resolve, reject) => {
       const bgImg = new Image();
 
@@ -163,23 +165,55 @@ export class SimpleVideoGenerator {
           this.ctx.translate(logoX + logoWidth / 2, logoY + logoHeight / 2);
           this.ctx.rotate(rotationAngle * Math.PI / 180);
 
-          // Add shadow for better visibility
-          this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-          this.ctx.shadowBlur = 8;
-          this.ctx.shadowOffsetX = 3;
-          this.ctx.shadowOffsetY = 3;
+          // Add sticker border if enabled
+          if (enableStickerBorder) {
+            const borderWidth = Math.max(2, logoWidth * 0.02); // 2% of logo width, minimum 2px
+            const borderRadius = borderWidth * 2;
+
+            // Draw white border background
+            this.ctx.fillStyle = 'white';
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            this.ctx.shadowBlur = borderWidth * 2;
+            this.ctx.shadowOffsetX = borderWidth * 0.5;
+            this.ctx.shadowOffsetY = borderWidth * 0.5;
+
+            // Rounded rectangle for sticker effect
+            const x = -logoWidth / 2 - borderWidth;
+            const y = -logoHeight / 2 - borderWidth;
+            const w = logoWidth + (borderWidth * 2);
+            const h = logoHeight + (borderWidth * 2);
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + borderRadius, y);
+            this.ctx.lineTo(x + w - borderRadius, y);
+            this.ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
+            this.ctx.lineTo(x + w, y + h - borderRadius);
+            this.ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
+            this.ctx.lineTo(x + borderRadius, y + h);
+            this.ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
+            this.ctx.lineTo(x, y + borderRadius);
+            this.ctx.quadraticCurveTo(x, y, x + borderRadius, y);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            // Reset shadow for logo
+            this.ctx.shadowColor = 'transparent';
+            this.ctx.shadowBlur = 0;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+          } else {
+            // Original shadow for logo without border
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            this.ctx.shadowBlur = 8;
+            this.ctx.shadowOffsetX = 3;
+            this.ctx.shadowOffsetY = 3;
+          }
 
           // Draw logo (centered on rotation point)
           this.ctx.drawImage(logoImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
 
           // Restore context
           this.ctx.restore();
-
-          // Reset shadow
-          this.ctx.shadowColor = 'transparent';
-          this.ctx.shadowBlur = 0;
-          this.ctx.shadowOffsetX = 0;
-          this.ctx.shadowOffsetY = 0;
 
           resolve();
         } catch (error) {
@@ -203,8 +237,8 @@ export function getBackgroundImages(): string[] {
   return images;
 }
 
-export function downloadVideo(buffer: ArrayBuffer, filename: string = 'logoloop.webm'): void {
-  const blob = new Blob([buffer], { type: 'video/webm' });
+export function downloadVideo(buffer: ArrayBuffer, filename: string = 'logoloop.mp4'): void {
+  const blob = new Blob([buffer], { type: 'video/mp4' });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement('a');

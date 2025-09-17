@@ -25,7 +25,8 @@ export function useVideoGeneration() {
   const generateVideo = async (
     logoFile: File,
     logoSize: number,
-    enableVariations: boolean
+    enableVariations: boolean,
+    enableStickerBorder: boolean
   ) => {
     setIsProcessing(true);
     setShowingVideo(true);
@@ -50,6 +51,7 @@ export function useVideoGeneration() {
         height: 720,
         logoSize: logoSize,
         enableVariations: enableVariations,
+        enableStickerBorder: enableStickerBorder,
         onProgress: (progressValue) => {
           setProgress(progressValue);
         }
@@ -58,7 +60,7 @@ export function useVideoGeneration() {
       setGeneratedVideo(videoBuffer);
 
       // Create preview URL
-      const mimeType = 'video/webm';
+      const mimeType = 'video/mp4';
       const blob = new Blob([videoBuffer], { type: mimeType });
       const previewUrl = URL.createObjectURL(blob);
       setVideoPreviewUrl(previewUrl);
@@ -84,7 +86,7 @@ export function useVideoGeneration() {
 
   const handleDownloadVideo = () => {
     if (generatedVideo) {
-      downloadVideo(generatedVideo, `logoloop-${Date.now()}.webm`);
+      downloadVideo(generatedVideo, `logoloop-${Date.now()}.mp4`);
     }
   };
 

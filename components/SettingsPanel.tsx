@@ -8,18 +8,22 @@ import { Switch } from "@heroui/switch";
 interface SettingsPanelProps {
   logoSize: number;
   enableVariations: boolean;
+  enableStickerBorder: boolean;
   isProcessing: boolean;
   onLogoSizeChange: (size: number) => void;
   onVariationsChange: (enabled: boolean) => void;
+  onStickerBorderChange: (enabled: boolean) => void;
   onGenerateVideo: () => void;
 }
 
 export default function SettingsPanel({
   logoSize,
   enableVariations,
+  enableStickerBorder,
   isProcessing,
   onLogoSizeChange,
   onVariationsChange,
+  onStickerBorderChange,
   onGenerateVideo
 }: SettingsPanelProps) {
   const handleSliderChange = (value: number | number[]) => {
@@ -63,6 +67,19 @@ export default function SettingsPanel({
             <Switch
               isSelected={enableVariations}
               onValueChange={onVariationsChange}
+              color="primary"
+            />
+          </div>
+
+          {/* Sticker Border */}
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-medium text-gray-900">Sticker Border</p>
+              <p className="text-sm text-gray-500">Add white border like a real sticker</p>
+            </div>
+            <Switch
+              isSelected={enableStickerBorder}
+              onValueChange={onStickerBorderChange}
               color="primary"
             />
           </div>

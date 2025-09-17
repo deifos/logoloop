@@ -6,13 +6,15 @@ interface PreviewCanvasProps {
   logoFile: File | null;
   logoSize: number;
   enableVariations: boolean;
+  enableStickerBorder: boolean;
 }
 
-export default function PreviewCanvas({ logoFile, logoSize, enableVariations }: PreviewCanvasProps) {
+export default function PreviewCanvas({ logoFile, logoSize, enableVariations, enableStickerBorder }: PreviewCanvasProps) {
   const { displayCanvasRef, currentBgIndex } = usePreview({
     logoFile,
     logoSize,
     enableVariations,
+    enableStickerBorder,
     isActive: true
   });
 

@@ -7,16 +7,18 @@ interface UsePreviewOptions {
   logoFile: File | null;
   logoSize: number;
   enableVariations: boolean;
+  enableStickerBorder: boolean;
   isActive: boolean;
 }
 
-export function usePreview({ logoFile, logoSize, enableVariations, isActive }: UsePreviewOptions) {
+export function usePreview({ logoFile, logoSize, enableVariations, enableStickerBorder, isActive }: UsePreviewOptions) {
   const [currentBgIndex, setCurrentBgIndex] = useState<number>(0);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const displayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const logoSizeRef = useRef<number>(logoSize);
   const enableVariationsRef = useRef<boolean>(enableVariations);
+  const enableStickerBorderRef = useRef<boolean>(enableStickerBorder);
 
   // Keep refs in sync with state for real-time preview
   useEffect(() => {
@@ -26,6 +28,10 @@ export function usePreview({ logoFile, logoSize, enableVariations, isActive }: U
   useEffect(() => {
     enableVariationsRef.current = enableVariations;
   }, [enableVariations]);
+
+  useEffect(() => {
+    enableStickerBorderRef.current = enableStickerBorder;
+  }, [enableStickerBorder]);
 
   const drawLogoOnCanvas = (
     ctx: CanvasRenderingContext2D,
@@ -59,10 +65,49 @@ export function usePreview({ logoFile, logoSize, enableVariations, isActive }: U
     ctx.translate(logoX + logoWidth / 2, logoY + logoHeight / 2);
     ctx.rotate(rotationAngle * Math.PI / 180);
 
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 3;
+    // Add sticker border if enabled
+    if (enableStickerBorderRef.current) {
+      const borderWidth = Math.max(2, logoWidth * 0.02); // 2% of logo width, minimum 2px
+      const borderRadius = borderWidth * 2;
+
+      // Draw white border background
+      ctx.fillStyle = 'white';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = borderWidth * 2;
+      ctx.shadowOffsetX = borderWidth * 0.5;
+      ctx.shadowOffsetY = borderWidth * 0.5;
+
+      // Rounded rectangle for sticker effect
+      const x = -logoWidth / 2 - borderWidth;
+      const y = -logoHeight / 2 - borderWidth;
+      const w = logoWidth + (borderWidth * 2);
+      const h = logoHeight + (borderWidth * 2);
+
+      ctx.beginPath();
+      ctx.moveTo(x + borderRadius, y);
+      ctx.lineTo(x + w - borderRadius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
+      ctx.lineTo(x + w, y + h - borderRadius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
+      ctx.lineTo(x + borderRadius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
+      ctx.lineTo(x, y + borderRadius);
+      ctx.quadraticCurveTo(x, y, x + borderRadius, y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Reset shadow for logo
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    } else {
+      // Original shadow for logo without border
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+    }
 
     ctx.drawImage(logoImg, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
     ctx.restore();
