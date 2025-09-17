@@ -10,7 +10,7 @@ import { useVideoGeneration } from "@/hooks/useVideoGeneration";
 
 export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [logoSize, setLogoSize] = useState<number>(8);
+  const [logoSize, setLogoSize] = useState<number>(15);
   const [enableVariations, setEnableVariations] = useState<boolean>(true);
 
   const {
@@ -51,7 +51,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       {/* Header */}
       <div className="text-center py-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">LogoLoop</h1>
@@ -117,10 +117,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center py-8 text-gray-500">
-        Made with ❤️ by <span className="font-semibold text-gray-700">LogoLoop</span> — free experiment
-      </div>
+     
     </div>
   );
 }

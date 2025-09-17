@@ -5,21 +5,21 @@ export const siteConfig = {
   description: "Generate videos from logos.",
   navItems: [
     {
-      label: "Home",
-      href: "/",
+      label: "",
+      href: "",
     }
     
     
   ],
   navMenuItems: [
     {
-      label: "Profile",
-      href: "/profile",
+      label: "",
+      href: "/",
     }
    
   ],
   links: {
-    github: "https://github.com/deifosv",
+    github: "https://github.com/deifos",
     twitter: "https://twitter.com/deifosv",
   },
 };

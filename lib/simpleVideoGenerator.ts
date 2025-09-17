@@ -144,10 +144,10 @@ export class SimpleVideoGenerator {
             const variationSeed = Math.floor(frameIndex / 3);
 
             // Use consistent pseudo-random variations based on background
-            scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.15); // ±15% size variation
-            rotationAngle = Math.sin(variationSeed * 1.7) * 5; // ±5 degrees rotation
-            positionOffsetX = Math.sin(variationSeed * 1.3) * 10; // ±10px horizontal offset
-            positionOffsetY = Math.cos(variationSeed * 1.9) * 10; // ±10px vertical offset
+            scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.05); // ±5% size variation
+            rotationAngle = Math.sin(variationSeed * 1.7) * 2; // ±2 degrees rotation
+            positionOffsetX = Math.sin(variationSeed * 1.3) * 8; // ±8px horizontal offset (scaled for higher res)
+            positionOffsetY = Math.cos(variationSeed * 1.9) * 8; // ±8px vertical offset (scaled for higher res)
           }
 
           const logoScale = baseScale * scaleVariation;

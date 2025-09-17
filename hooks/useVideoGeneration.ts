@@ -46,8 +46,8 @@ export function useVideoGeneration() {
         logoFile,
         backgroundImages,
         duration: 10,
-        width: 640,
-        height: 480,
+        width: 1280,
+        height: 720,
         logoSize: logoSize,
         enableVariations: enableVariations,
         onProgress: (progressValue) => {

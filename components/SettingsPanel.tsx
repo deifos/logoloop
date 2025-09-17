@@ -43,7 +43,7 @@ export default function SettingsPanel({
               value={logoSize}
               onChange={handleSliderChange}
               minValue={2}
-              maxValue={20}
+              maxValue={50}
               step={1}
               className="w-full"
               color="primary"

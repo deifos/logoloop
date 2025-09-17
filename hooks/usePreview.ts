@@ -43,10 +43,10 @@ export function usePreview({ logoFile, logoSize, enableVariations, isActive }: U
 
     if (enableVariationsRef.current) {
       const variationSeed = Math.floor(frameCount / 15);
-      scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.15);
-      rotationAngle = Math.sin(variationSeed * 1.7) * 5;
-      positionOffsetX = Math.sin(variationSeed * 1.3) * 10;
-      positionOffsetY = Math.cos(variationSeed * 1.9) * 10;
+      scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.05); // ±5% size variation
+      rotationAngle = Math.sin(variationSeed * 1.7) * 2; // ±2 degrees rotation
+      positionOffsetX = Math.sin(variationSeed * 1.3) * 8; // Scaled up for higher resolution (4px -> 8px)
+      positionOffsetY = Math.cos(variationSeed * 1.9) * 8; // Scaled up for higher resolution (4px -> 8px)
     }
 
     const logoScale = baseScale * scaleVariation;
@@ -71,8 +71,8 @@ export function usePreview({ logoFile, logoSize, enableVariations, isActive }: U
   const startPreview = (file: File) => {
     stopPreview();
     const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 480;
+    canvas.width = 1280;
+    canvas.height = 720;
     previewCanvasRef.current = canvas;
 
     const ctx = canvas.getContext('2d')!;
