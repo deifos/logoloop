@@ -6,6 +6,7 @@ import LogoUpload from "@/components/LogoUpload";
 import SettingsPanel from "@/components/SettingsPanel";
 import PreviewCanvas from "@/components/PreviewCanvas";
 import VideoPlayer from "@/components/VideoPlayer";
+import BackgroundUpload from "@/components/BackgroundUpload";
 import { useVideoGeneration } from "@/hooks/useVideoGeneration";
 
 export default function Home() {
@@ -13,6 +14,10 @@ export default function Home() {
   const [logoSize, setLogoSize] = useState<number>(15);
   const [enableVariations, setEnableVariations] = useState<boolean>(true);
   const [enableStickerBorder, setEnableStickerBorder] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(50); // 1-100, 50 is default
+  const [resizeMode, setResizeMode] = useState<boolean>(false);
+  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16" | "1:1">("16:9");
+  const [customBackgrounds, setCustomBackgrounds] = useState<File[]>([]);
 
   const {
     isProcessing,
@@ -41,7 +46,7 @@ export default function Home() {
     if (!uploadedFile) return;
 
     try {
-      await generateVideo(uploadedFile, logoSize, enableVariations, enableStickerBorder);
+      await generateVideo(uploadedFile, logoSize, enableVariations, enableStickerBorder, speed, aspectRatio, customBackgrounds);
     } catch (error: any) {
       alert(`Video generation failed: ${error.message}`);
     }
@@ -53,18 +58,12 @@ export default function Home() {
 
   return (
     <div className="">
-      {/* Header */}
-      <div className="text-center py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">LogoLoop</h1>
-        <p className="text-lg text-gray-600">Your logo. Infinite backgrounds.</p>
-      </div>
-
-      {/* Main Layout - 2 Columns */}
-      <div className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Layout - 3 Columns */}
+      <div className="max-w-[1600px] mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
           {/* Left Column - Configuration */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4">
             {/* Upload Section */}
             <LogoUpload
               uploadedFile={uploadedFile}
@@ -76,26 +75,34 @@ export default function Home() {
             {uploadedFile && (
               <SettingsPanel
                 logoSize={logoSize}
+                speed={speed}
                 enableVariations={enableVariations}
                 enableStickerBorder={enableStickerBorder}
+                resizeMode={resizeMode}
+                aspectRatio={aspectRatio}
                 isProcessing={isProcessing}
                 onLogoSizeChange={setLogoSize}
+                onSpeedChange={setSpeed}
                 onVariationsChange={setEnableVariations}
                 onStickerBorderChange={setEnableStickerBorder}
+                onResizeModeChange={setResizeMode}
+                onAspectRatioChange={setAspectRatio}
                 onGenerateVideo={handleGenerateVideo}
               />
             )}
           </div>
 
-          {/* Right Column - Preview/Video */}
+          {/* Middle Column - Preview/Video */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardBody className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  {showingVideo ? (isProcessing ? "Generating..." : "Your Video") : "Live Preview"}
-                </h2>
-
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+            <Card className="h-full">
+              <CardBody className="p-4">
+                <div
+                  className="bg-gray-100 rounded-lg overflow-hidden relative mx-auto"
+                  style={{
+                    aspectRatio: aspectRatio === "16:9" ? "16/9" : aspectRatio === "9:16" ? "9/16" : "1/1",
+                    maxHeight: aspectRatio === "9:16" ? "60vh" : "auto"
+                  }}
+                >
                   {showingVideo ? (
                     <VideoPlayer
                       isProcessing={isProcessing}
@@ -110,13 +117,28 @@ export default function Home() {
                     <PreviewCanvas
                       logoFile={uploadedFile}
                       logoSize={logoSize}
+                      speed={speed}
                       enableVariations={enableVariations}
                       enableStickerBorder={enableStickerBorder}
+                      resizeMode={resizeMode}
+                      aspectRatio={aspectRatio}
+                      customBackgrounds={customBackgrounds}
+                      onLogoSizeChange={setLogoSize}
                     />
                   )}
                 </div>
               </CardBody>
             </Card>
+          </div>
+
+          {/* Right Column - Backgrounds */}
+          <div className="lg:col-span-1">
+            {uploadedFile && (
+              <BackgroundUpload
+                backgrounds={customBackgrounds}
+                onBackgroundsChange={setCustomBackgrounds}
+              />
+            )}
           </div>
         </div>
       </div>

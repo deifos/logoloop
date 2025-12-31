@@ -26,7 +26,10 @@ export function useVideoGeneration() {
     logoFile: File,
     logoSize: number,
     enableVariations: boolean,
-    enableStickerBorder: boolean
+    enableStickerBorder: boolean,
+    speed: number = 50,
+    aspectRatio: "16:9" | "9:16" | "1:1" = "16:9",
+    customBackgrounds: File[] = []
   ) => {
     setIsProcessing(true);
     setShowingVideo(true);
@@ -39,19 +42,32 @@ export function useVideoGeneration() {
         videoGeneratorRef.current = new SimpleVideoGenerator();
       }
 
-      const backgroundImages = getBackgroundImages();
+      // Use custom backgrounds if provided, otherwise use defaults
+      let backgroundImages: string[];
+      if (customBackgrounds.length > 0) {
+        backgroundImages = customBackgrounds.map(file => URL.createObjectURL(file));
+      } else {
+        backgroundImages = getBackgroundImages();
+      }
+
+      // Get dimensions based on aspect ratio
+      const dimensions = {
+        "16:9": { width: 1280, height: 720 },
+        "9:16": { width: 720, height: 1280 },
+        "1:1": { width: 1080, height: 1080 }
+      }[aspectRatio];
 
       // Generate the video
-      console.log('🎬 Starting video generation...');
       const videoBuffer = await videoGeneratorRef.current.generateVideo({
         logoFile,
         backgroundImages,
         duration: 10,
-        width: 1280,
-        height: 720,
+        width: dimensions.width,
+        height: dimensions.height,
         logoSize: logoSize,
         enableVariations: enableVariations,
         enableStickerBorder: enableStickerBorder,
+        speed: speed,
         onProgress: (progressValue) => {
           setProgress(progressValue);
         }

@@ -1,53 +1,40 @@
-# Next.js & HeroUI Template
+# LogoLoop
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+Generate dynamic looping videos from your logo. Upload a logo, and LogoLoop overlays it on 37 different backgrounds to create engaging video content - perfect for social media.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+Inspired by the Instagram trend of placing stickers on walls and creating quick-cut photo compilations.
 
-## Technologies Used
+## Features
 
-- [Next.js 15](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
+- **Logo Upload** - Drag-and-drop or file picker (PNG, SVG, JPG)
+- **Live Preview** - Real-time preview cycling through all backgrounds
+- **Resize Logo** - Drag corners to resize your logo
+- **Speed Control** - Adjust how fast backgrounds change
+- **Animation Effects** - Random tilting and positioning to simulate real photos
+- **Sticker Border** - Add a white border with rounded corners
+- **Aspect Ratios** - 16:9, 9:16 (vertical), or 1:1 (square)
+- **Video Export** - Download as MP4
+
+## Tech Stack
+
+- [Next.js 15](https://nextjs.org/) - React framework
+- [MediaBunny](https://www.npmjs.com/package/mediabunny) - Browser-based video encoding (H.264/MP4)
+- [HeroUI](https://heroui.com/) - UI components
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
 
-## How to Use
-
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
+## Getting Started
 
 ```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
-```
-
-### Install dependencies
-
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
-
-```bash
+# Install dependencies
 npm install
-```
 
-### Run the development server
-
-```bash
+# Run development server
 npm run dev
 ```
 
-### Setup pnpm (optional)
-
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
-
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
-
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## License
 
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+MIT

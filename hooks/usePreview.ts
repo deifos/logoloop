@@ -6,24 +6,51 @@ import { getBackgroundImages } from "@/lib/simpleVideoGenerator";
 interface UsePreviewOptions {
   logoFile: File | null;
   logoSize: number;
+  speed: number;
   enableVariations: boolean;
   enableStickerBorder: boolean;
+  aspectRatio: "16:9" | "9:16" | "1:1";
+  customBackgrounds: File[];
   isActive: boolean;
 }
 
-export function usePreview({ logoFile, logoSize, enableVariations, enableStickerBorder, isActive }: UsePreviewOptions) {
+// Get canvas dimensions based on aspect ratio
+function getCanvasDimensions(aspectRatio: "16:9" | "9:16" | "1:1"): { width: number; height: number } {
+  switch (aspectRatio) {
+    case "9:16":
+      return { width: 720, height: 1280 };
+    case "1:1":
+      return { width: 1080, height: 1080 };
+    case "16:9":
+    default:
+      return { width: 1280, height: 720 };
+  }
+}
+
+export function usePreview({ logoFile, logoSize, speed, enableVariations, enableStickerBorder, aspectRatio, customBackgrounds, isActive }: UsePreviewOptions) {
   const [currentBgIndex, setCurrentBgIndex] = useState<number>(0);
+  const [totalBackgrounds, setTotalBackgrounds] = useState<number>(37);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const displayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const logoSizeRef = useRef<number>(logoSize);
+  const speedRef = useRef<number>(speed);
   const enableVariationsRef = useRef<boolean>(enableVariations);
   const enableStickerBorderRef = useRef<boolean>(enableStickerBorder);
+  const aspectRatioRef = useRef<"16:9" | "9:16" | "1:1">(aspectRatio);
+  const customBackgroundsRef = useRef<File[]>(customBackgrounds);
+  const isActiveRef = useRef<boolean>(isActive);
+  const frameCountRef = useRef<number>(0);
+  const lastBgIndexRef = useRef<number>(-1);
 
   // Keep refs in sync with state for real-time preview
   useEffect(() => {
     logoSizeRef.current = logoSize;
   }, [logoSize]);
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
 
   useEffect(() => {
     enableVariationsRef.current = enableVariations;
@@ -33,6 +60,22 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
     enableStickerBorderRef.current = enableStickerBorder;
   }, [enableStickerBorder]);
 
+  useEffect(() => {
+    aspectRatioRef.current = aspectRatio;
+  }, [aspectRatio]);
+
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
+    customBackgroundsRef.current = customBackgrounds;
+  }, [customBackgrounds]);
+
+  // Calculate frames per background based on speed (10-100)
+  // Speed 10 = 27 frames (slow), Speed 50 = 16 frames, Speed 100 = 2 frames (fast)
+  const getFramesPerBg = () => Math.max(2, Math.round(30 - speedRef.current * 0.28));
+
   const drawLogoOnCanvas = (
     ctx: CanvasRenderingContext2D,
     logoImg: HTMLImageElement,
@@ -41,6 +84,7 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
     frameCount: number
   ) => {
     const baseScale = logoSizeRef.current / 100;
+    const framesPerBg = getFramesPerBg();
 
     let scaleVariation = 1;
     let rotationAngle = 0;
@@ -48,11 +92,19 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
     let positionOffsetY = 0;
 
     if (enableVariationsRef.current) {
-      const variationSeed = Math.floor(frameCount / 15);
-      scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.05); // ±5% size variation
-      rotationAngle = Math.sin(variationSeed * 1.7) * 2; // ±2 degrees rotation
-      positionOffsetX = Math.sin(variationSeed * 1.3) * 8; // Scaled up for higher resolution (4px -> 8px)
-      positionOffsetY = Math.cos(variationSeed * 1.9) * 8; // Scaled up for higher resolution (4px -> 8px)
+      // Use background index to create pseudo-random but stable values per "photo"
+      const bgIndex = Math.floor(frameCount / framesPerBg);
+
+      // Simple hash function to get random-looking but deterministic values
+      const hash1 = ((bgIndex * 1237) % 100) / 100; // 0-1 range
+      const hash2 = ((bgIndex * 2749) % 100) / 100;
+      const hash3 = ((bgIndex * 3571) % 100) / 100;
+      const hash4 = ((bgIndex * 4919) % 100) / 100;
+
+      scaleVariation = 1 + ((hash1 - 0.5) * 0.1); // ±5% size variation
+      rotationAngle = (hash2 - 0.5) * 6; // ±3 degrees rotation
+      positionOffsetX = (hash3 - 0.5) * 16; // ±8px horizontal offset
+      positionOffsetY = (hash4 - 0.5) * 16; // ±8px vertical offset
     }
 
     const logoScale = baseScale * scaleVariation;
@@ -67,8 +119,8 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
 
     // Add sticker border if enabled
     if (enableStickerBorderRef.current) {
-      const borderWidth = Math.max(2, logoWidth * 0.02); // 2% of logo width, minimum 2px
-      const borderRadius = borderWidth * 2;
+      const borderWidth = Math.max(4, logoWidth * 0.03); // 3% of logo width, minimum 4px
+      const borderRadius = 15; // Fixed 15px rounded corners
 
       // Draw white border background
       ctx.fillStyle = 'white';
@@ -113,68 +165,142 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
     ctx.restore();
   };
 
-  const startPreview = (file: File) => {
+  const startPreview = async (file: File, customBgs: File[]) => {
     stopPreview();
+    const { width, height } = getCanvasDimensions(aspectRatioRef.current);
     const canvas = document.createElement('canvas');
-    canvas.width = 1280;
-    canvas.height = 720;
+    canvas.width = width;
+    canvas.height = height;
     previewCanvasRef.current = canvas;
 
     const ctx = canvas.getContext('2d')!;
-    const backgroundImages = getBackgroundImages();
+
+    // Determine which backgrounds to use
+    const useCustomBackgrounds = customBgs.length > 0;
+    let preloadedBackgrounds: HTMLImageElement[];
+
+    if (useCustomBackgrounds) {
+      // Preload custom backgrounds from Files
+      preloadedBackgrounds = await Promise.all(
+        customBgs.map(async (bgFile) => {
+          const img = new Image();
+          img.src = URL.createObjectURL(bgFile);
+          try {
+            await img.decode();
+          } catch (e) {
+            // Fallback if decode fails
+          }
+          return img;
+        })
+      );
+    } else {
+      // Preload default background images
+      const backgroundImagePaths = getBackgroundImages();
+      preloadedBackgrounds = await Promise.all(
+        backgroundImagePaths.map(async (src) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = src;
+          try {
+            await img.decode();
+          } catch (e) {
+            // Fallback if decode fails
+          }
+          return img;
+        })
+      );
+    }
+
+    // Update total backgrounds count
+    setTotalBackgrounds(preloadedBackgrounds.length);
 
     const logoImg = new Image();
     logoImg.onload = () => {
-      let frameCount = 0;
+      let lastFrameTime = 0;
+      const frameInterval = 33; // ~30fps
 
-      const renderFrame = () => {
-        const bgIndex = Math.floor(frameCount / 15) % backgroundImages.length;
-        setCurrentBgIndex(bgIndex);
+      const renderFrame = (timestamp: number) => {
+        // Throttle to ~30fps for consistent timing
+        if (timestamp - lastFrameTime < frameInterval) {
+          previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
+          return;
+        }
+        lastFrameTime = timestamp;
 
-        const bgImg = new Image();
-        bgImg.onload = () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+        const framesPerBg = getFramesPerBg();
+        const bgIndex = Math.floor(frameCountRef.current / framesPerBg) % preloadedBackgrounds.length;
 
-          drawLogoOnCanvas(ctx, logoImg, canvas.width, canvas.height, frameCount);
+        // Only update React state when background actually changes
+        if (bgIndex !== lastBgIndexRef.current) {
+          lastBgIndexRef.current = bgIndex;
+          setCurrentBgIndex(bgIndex);
+        }
 
-          if (displayCanvasRef.current) {
-            const displayCtx = displayCanvasRef.current.getContext('2d');
-            if (displayCtx) {
-              displayCanvasRef.current.width = canvas.width;
-              displayCanvasRef.current.height = canvas.height;
-              displayCtx.drawImage(canvas, 0, 0);
-            }
+        // Use preloaded background - no async loading, instant switch
+        const bgImg = preloadedBackgrounds[bgIndex];
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background with "cover" style (crop to fill, maintain aspect ratio)
+        const imgAspect = bgImg.width / bgImg.height;
+        const canvasAspect = canvas.width / canvas.height;
+
+        let srcX = 0, srcY = 0, srcW = bgImg.width, srcH = bgImg.height;
+
+        if (imgAspect > canvasAspect) {
+          // Image is wider - crop sides
+          srcW = bgImg.height * canvasAspect;
+          srcX = (bgImg.width - srcW) / 2;
+        } else {
+          // Image is taller - crop top/bottom
+          srcH = bgImg.width / canvasAspect;
+          srcY = (bgImg.height - srcH) / 2;
+        }
+
+        ctx.drawImage(bgImg, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
+
+        drawLogoOnCanvas(ctx, logoImg, canvas.width, canvas.height, frameCountRef.current);
+
+        if (displayCanvasRef.current) {
+          const displayCtx = displayCanvasRef.current.getContext('2d');
+          if (displayCtx) {
+            displayCanvasRef.current.width = canvas.width;
+            displayCanvasRef.current.height = canvas.height;
+            displayCtx.drawImage(canvas, 0, 0);
           }
-        };
-        bgImg.crossOrigin = 'anonymous';
-        bgImg.src = backgroundImages[bgIndex];
+        }
 
-        frameCount++;
+        // Only advance frame count when animation is active (not in resize mode)
+        if (isActiveRef.current) {
+          frameCountRef.current++;
+        }
+
+        previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
       };
 
-      previewIntervalRef.current = setInterval(renderFrame, 33);
+      previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
     };
     logoImg.src = URL.createObjectURL(file);
   };
 
   const stopPreview = () => {
     if (previewIntervalRef.current) {
-      clearInterval(previewIntervalRef.current);
+      cancelAnimationFrame(previewIntervalRef.current as unknown as number);
       previewIntervalRef.current = null;
     }
   };
 
-  // Start/stop preview based on isActive and logoFile
+  // Start preview when logoFile is available (keep running even when paused)
+  // Restart when aspectRatio or customBackgrounds change
   useEffect(() => {
-    if (isActive && logoFile) {
-      startPreview(logoFile);
+    if (logoFile) {
+      startPreview(logoFile, customBackgrounds);
     } else {
       stopPreview();
     }
 
     return () => stopPreview();
-  }, [isActive, logoFile]);
+  }, [logoFile, aspectRatio, customBackgrounds]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -184,6 +310,7 @@ export function usePreview({ logoFile, logoSize, enableVariations, enableSticker
   return {
     displayCanvasRef,
     currentBgIndex,
+    totalBackgrounds,
     stopPreview
   };
 }

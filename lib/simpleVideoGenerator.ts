@@ -16,6 +16,7 @@ export interface SimpleVideoOptions {
   logoSize?: number; // Logo size as percentage (1-50)
   enableVariations?: boolean; // Whether to enable random variations
   enableStickerBorder?: boolean; // Whether to add sticker border effect
+  speed?: number; // Speed of background changes (10-100)
   onProgress?: (progress: number) => void;
 }
 
@@ -38,15 +39,17 @@ export class SimpleVideoGenerator {
       logoSize = 15, // Default 15% size
       enableVariations = true,
       enableStickerBorder = false,
+      speed = 50, // Default 50% speed
       onProgress
     } = options;
 
-    console.log('🎬 Starting simple video generation...');
+    // Calculate frames per background based on speed (10-100)
+    // Speed 10 = 27 frames (slow), Speed 50 = 16 frames, Speed 100 = 2 frames (fast)
+    const framesPerBg = Math.max(2, Math.round(30 - speed * 0.28));
 
     // Set canvas size
     this.canvas.width = width;
     this.canvas.height = height;
-    console.log(`📐 Canvas size: ${width}x${height}`);
 
     // Create output with MP4 format for H.264
     const target = new BufferTarget();
@@ -56,9 +59,7 @@ export class SimpleVideoGenerator {
     });
 
     // Load logo
-    console.log('🖼️ Loading logo...');
     const logoImage = await this.loadImage(logoFile);
-    console.log('✅ Logo loaded');
 
     // Create video source with AVC/H.264 (MP4)
     const videoSource = new CanvasSource(this.canvas, {
@@ -67,30 +68,24 @@ export class SimpleVideoGenerator {
     });
 
     // Add video track
-    output.addVideoTrack(videoSource, { frameRate: 20 }); // Higher frame rate for smoother video
+    output.addVideoTrack(videoSource, { frameRate: 20 });
 
-    console.log('🚀 Starting output...');
     await output.start();
-    console.log('✅ Output started');
 
     // Generate frames
-    const fps = 20; // Higher FPS for smoother video
+    const fps = 20;
     const totalFrames = duration * fps;
     const frameInterval = 1 / fps;
-
-    console.log(`🎞️ Generating ${totalFrames} frames at ${fps} FPS`);
 
     for (let frame = 0; frame < totalFrames; frame++) {
       const timestamp = frame * frameInterval;
 
-      // Choose background image - change every 3 frames (faster transitions)
-      const bgIndex = Math.floor(frame / 3) % backgroundImages.length;
+      // Choose background image based on speed setting
+      const bgIndex = Math.floor(frame / framesPerBg) % backgroundImages.length;
       const backgroundPath = backgroundImages[bgIndex];
 
-      console.log(`Frame ${frame + 1}/${totalFrames} - Background: ${backgroundPath}`);
-
       // Draw frame
-      await this.drawFrame(backgroundPath, logoImage, logoSize, enableVariations, enableStickerBorder, frame);
+      await this.drawFrame(backgroundPath, logoImage, logoSize, enableVariations, enableStickerBorder, frame, framesPerBg);
 
       // Add frame to video
       await videoSource.add(timestamp, frameInterval);
@@ -102,12 +97,8 @@ export class SimpleVideoGenerator {
       }
     }
 
-    console.log('🔄 Finalizing video...');
     videoSource.close();
     await output.finalize();
-
-    console.log('✅ Video generation complete!');
-    console.log(`📁 Buffer size: ${target.buffer!.byteLength} bytes`);
 
     return target.buffer!;
   }
@@ -121,7 +112,7 @@ export class SimpleVideoGenerator {
     });
   }
 
-  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableVariations: boolean, enableStickerBorder: boolean, frameIndex: number): Promise<void> {
+  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableVariations: boolean, enableStickerBorder: boolean, frameIndex: number, framesPerBg: number): Promise<void> {
     return new Promise((resolve, reject) => {
       const bgImg = new Image();
 
@@ -130,8 +121,23 @@ export class SimpleVideoGenerator {
           // Clear canvas
           this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-          // Draw background (scaled to fill)
-          this.ctx.drawImage(bgImg, 0, 0, this.canvas.width, this.canvas.height);
+          // Draw background with "cover" style (crop to fill, maintain aspect ratio)
+          const imgAspect = bgImg.width / bgImg.height;
+          const canvasAspect = this.canvas.width / this.canvas.height;
+
+          let srcX = 0, srcY = 0, srcW = bgImg.width, srcH = bgImg.height;
+
+          if (imgAspect > canvasAspect) {
+            // Image is wider - crop sides
+            srcW = bgImg.height * canvasAspect;
+            srcX = (bgImg.width - srcW) / 2;
+          } else {
+            // Image is taller - crop top/bottom
+            srcH = bgImg.width / canvasAspect;
+            srcY = (bgImg.height - srcH) / 2;
+          }
+
+          this.ctx.drawImage(bgImg, srcX, srcY, srcW, srcH, 0, 0, this.canvas.width, this.canvas.height);
 
           // Draw logo with optional variations
           const baseScale = logoSizePercent / 100;
@@ -142,14 +148,19 @@ export class SimpleVideoGenerator {
           let positionOffsetY = 0;
 
           if (enableVariations) {
-            // Sync variations with background changes (every 3 frames)
-            const variationSeed = Math.floor(frameIndex / 3);
+            // Use background index to create pseudo-random but stable values per "photo"
+            const bgIndex = Math.floor(frameIndex / framesPerBg);
 
-            // Use consistent pseudo-random variations based on background
-            scaleVariation = 1 + (Math.sin(variationSeed * 2.1) * 0.05); // ±5% size variation
-            rotationAngle = Math.sin(variationSeed * 1.7) * 2; // ±2 degrees rotation
-            positionOffsetX = Math.sin(variationSeed * 1.3) * 8; // ±8px horizontal offset (scaled for higher res)
-            positionOffsetY = Math.cos(variationSeed * 1.9) * 8; // ±8px vertical offset (scaled for higher res)
+            // Simple hash function to get random-looking but deterministic values
+            const hash1 = ((bgIndex * 1237) % 100) / 100; // 0-1 range
+            const hash2 = ((bgIndex * 2749) % 100) / 100;
+            const hash3 = ((bgIndex * 3571) % 100) / 100;
+            const hash4 = ((bgIndex * 4919) % 100) / 100;
+
+            scaleVariation = 1 + ((hash1 - 0.5) * 0.1); // ±5% size variation
+            rotationAngle = (hash2 - 0.5) * 6; // ±3 degrees rotation
+            positionOffsetX = (hash3 - 0.5) * 16; // ±8px horizontal offset
+            positionOffsetY = (hash4 - 0.5) * 16; // ±8px vertical offset
           }
 
           const logoScale = baseScale * scaleVariation;
@@ -167,8 +178,8 @@ export class SimpleVideoGenerator {
 
           // Add sticker border if enabled
           if (enableStickerBorder) {
-            const borderWidth = Math.max(2, logoWidth * 0.02); // 2% of logo width, minimum 2px
-            const borderRadius = borderWidth * 2;
+            const borderWidth = Math.max(4, logoWidth * 0.03); // 3% of logo width, minimum 4px
+            const borderRadius = 15; // Fixed 15px rounded corners
 
             // Draw white border background
             this.ctx.fillStyle = 'white';
