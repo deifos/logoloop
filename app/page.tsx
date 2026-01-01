@@ -134,7 +134,7 @@ export default function Home() {
                   className="bg-gray-100 rounded-lg overflow-hidden relative mx-auto"
                   style={{
                     aspectRatio: aspectRatio === "16:9" ? "16/9" : aspectRatio === "9:16" ? "9/16" : "1/1",
-                    maxHeight: aspectRatio === "9:16" ? "70vh" : "auto"
+                    maxHeight: aspectRatio === "9:16" ? "55vh" : "auto"
                   }}
                 >
                   {showingVideo ? (

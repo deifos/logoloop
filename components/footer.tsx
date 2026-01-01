@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Link } from '@heroui/link';
 import { XIcon } from './icons/XIcon';
+import { BuyMeACoffee } from './BuyMeACoffee';
 
 export function Footer() {
   return (
@@ -15,7 +16,7 @@ export function Footer() {
             <p className="text-sm text-default-600 mb-4 max-w-sm">
               Inspired on a video I saw on instagram.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm text-default-500">Built by Vlad</span>
               <Image
                 src="/vlad-pfp.jpg"
@@ -26,12 +27,13 @@ export function Footer() {
               />
               <Link
                 isExternal
-                className="flex items-center gap-1 text-default-500 hover:text-default-700 transition-colors ml-2"
+                className="flex items-center gap-1 text-default-500 hover:text-default-700 transition-colors"
                 href="https://x.com/deifosv"
                 title="Find me on X"
               >
                 <XIcon className="w-4 h-4" />
               </Link>
+              <BuyMeACoffee />
             </div>
           </div>
          
