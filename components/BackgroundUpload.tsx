@@ -54,8 +54,8 @@ export default function BackgroundUpload({
       <CardBody className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Custom Backgrounds</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-semibold text-foreground">Custom Backgrounds</h2>
+            <p className="text-sm text-default-500">
               {backgrounds.length > 0
                 ? `${backgrounds.length} image${backgrounds.length > 1 ? "s" : ""} selected`
                 : "Using default backgrounds"}
@@ -85,7 +85,7 @@ export default function BackgroundUpload({
         {/* Preview grid */}
         {backgrounds.length > 0 && (
           <>
-            <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+            <div className="max-h-40 overflow-y-auto border border-default-200 rounded-lg p-2">
               <div className="grid grid-cols-4 gap-2">
                 {previews.map((url, index) => (
                   <div key={index} className="relative group">

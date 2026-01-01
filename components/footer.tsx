@@ -44,13 +44,6 @@ export function Footer() {
               <Link
                 isExternal
                 className="block text-sm text-default-600 hover:text-default-900 transition-colors"
-                href="https://doodleai.fun"
-              >
-                DoodleAI
-              </Link>
-              <Link
-                isExternal
-                className="block text-sm text-default-600 hover:text-default-900 transition-colors"
                 href="https://nostalgiapicturesai.com"
               >
                 Nostalgia Pictures AI

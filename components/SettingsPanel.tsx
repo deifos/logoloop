@@ -9,14 +9,16 @@ import { ButtonGroup } from "@heroui/button";
 interface SettingsPanelProps {
   logoSize: number;
   speed: number;
-  enableVariations: boolean;
+  enableWiggle: boolean;
+  enableRealisticEffect: boolean;
   enableStickerBorder: boolean;
   resizeMode: boolean;
   aspectRatio: "16:9" | "9:16" | "1:1";
   isProcessing: boolean;
   onLogoSizeChange: (size: number) => void;
   onSpeedChange: (speed: number) => void;
-  onVariationsChange: (enabled: boolean) => void;
+  onWiggleChange: (enabled: boolean) => void;
+  onRealisticEffectChange: (enabled: boolean) => void;
   onStickerBorderChange: (enabled: boolean) => void;
   onResizeModeChange: (enabled: boolean) => void;
   onAspectRatioChange: (ratio: "16:9" | "9:16" | "1:1") => void;
@@ -26,14 +28,16 @@ interface SettingsPanelProps {
 export default function SettingsPanel({
   logoSize,
   speed,
-  enableVariations,
+  enableWiggle,
+  enableRealisticEffect,
   enableStickerBorder,
   resizeMode,
   aspectRatio,
   isProcessing,
   onLogoSizeChange,
   onSpeedChange,
-  onVariationsChange,
+  onWiggleChange,
+  onRealisticEffectChange,
   onStickerBorderChange,
   onResizeModeChange,
   onAspectRatioChange,
@@ -47,12 +51,12 @@ export default function SettingsPanel({
   return (
     <Card>
       <CardBody className="p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Settings</h2>
 
         <div className="space-y-3">
           {/* Speed Control */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-default-700 block mb-1">
               Speed: {speed}%
             </label>
             <Slider
@@ -69,8 +73,8 @@ export default function SettingsPanel({
 
           {/* Resize Logo Mode */}
           <div className="flex justify-between items-center py-1">
-            <p className="text-sm font-medium text-gray-900">
-              Resize Logo {resizeMode && <span className="text-gray-500">({logoSize}%)</span>}
+            <p className="text-sm font-medium text-foreground">
+              Resize Logo {resizeMode && <span className="text-default-500">({logoSize}%)</span>}
             </p>
             <Switch
               size="sm"
@@ -80,20 +84,31 @@ export default function SettingsPanel({
             />
           </div>
 
-          {/* Enable Variations */}
+          {/* Wiggle Effect */}
           <div className="flex justify-between items-center py-1">
-            <p className="text-sm font-medium text-gray-900">Animation Effects</p>
+            <p className="text-sm font-medium text-foreground">Wiggle Effect</p>
             <Switch
               size="sm"
-              isSelected={enableVariations}
-              onValueChange={onVariationsChange}
+              isSelected={enableWiggle}
+              onValueChange={onWiggleChange}
+              color="primary"
+            />
+          </div>
+
+          {/* Realistic Effect */}
+          <div className="flex justify-between items-center py-1">
+            <p className="text-sm font-medium text-foreground">Dynamic Shadow</p>
+            <Switch
+              size="sm"
+              isSelected={enableRealisticEffect}
+              onValueChange={onRealisticEffectChange}
               color="primary"
             />
           </div>
 
           {/* Sticker Border */}
           <div className="flex justify-between items-center py-1">
-            <p className="text-sm font-medium text-gray-900">Sticker Border</p>
+            <p className="text-sm font-medium text-foreground">Sticker Border</p>
             <Switch
               size="sm"
               isSelected={enableStickerBorder}
@@ -104,7 +119,7 @@ export default function SettingsPanel({
 
           {/* Aspect Ratio */}
           <div>
-            <p className="text-sm font-medium text-gray-900 mb-2">Aspect Ratio</p>
+            <p className="text-sm font-medium text-foreground mb-2">Aspect Ratio</p>
             <ButtonGroup className="w-full" size="sm">
               <Button
                 className="flex-1"

@@ -40,11 +40,11 @@ export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo
   return (
     <Card>
       <CardBody className="p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Logo</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Logo</h2>
         {!uploadedFile ? (
           <div
-            className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all ${
-              dragActive ? "border-blue-500 bg-blue-50 scale-105" : "hover:border-gray-400"
+            className={`border-2 border-dashed border-default-300 rounded-lg p-4 text-center transition-all ${
+              dragActive ? "border-primary bg-primary-50 scale-105" : "hover:border-default-400"
             }`}
             onDrop={handleDrop}
             onDragOver={(e) => {
@@ -53,12 +53,12 @@ export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo
             }}
             onDragLeave={() => setDragActive(false)}
           >
-            <div className="w-10 h-10 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-2">
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 mx-auto bg-default-200 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-5 h-5 text-default-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
-            <p className="text-sm text-gray-500 mb-3">PNG, SVG, JPG</p>
+            <p className="text-sm text-default-500 mb-3">PNG, SVG, JPG</p>
             <input
               type="file"
               accept="image/*"
@@ -80,7 +80,7 @@ export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo
         ) : (
           <div className="flex flex-col items-center">
             {previewUrl && (
-              <div className="w-20 h-20 mb-3 flex items-center justify-center bg-gray-50 rounded-lg p-2">
+              <div className="w-20 h-20 mb-3 flex items-center justify-center bg-default-100 rounded-lg p-2">
                 <img
                   src={previewUrl}
                   alt="Logo preview"

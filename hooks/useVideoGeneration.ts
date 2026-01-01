@@ -25,7 +25,8 @@ export function useVideoGeneration() {
   const generateVideo = async (
     logoFile: File,
     logoSize: number,
-    enableVariations: boolean,
+    enableWiggle: boolean,
+    enableRealisticEffect: boolean,
     enableStickerBorder: boolean,
     speed: number = 50,
     aspectRatio: "16:9" | "9:16" | "1:1" = "16:9",
@@ -65,7 +66,8 @@ export function useVideoGeneration() {
         width: dimensions.width,
         height: dimensions.height,
         logoSize: logoSize,
-        enableVariations: enableVariations,
+        enableWiggle: enableWiggle,
+        enableRealisticEffect: enableRealisticEffect,
         enableStickerBorder: enableStickerBorder,
         speed: speed,
         onProgress: (progressValue) => {

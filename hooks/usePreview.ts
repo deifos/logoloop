@@ -7,7 +7,8 @@ interface UsePreviewOptions {
   logoFile: File | null;
   logoSize: number;
   speed: number;
-  enableVariations: boolean;
+  enableWiggle: boolean;
+  enableRealisticEffect: boolean;
   enableStickerBorder: boolean;
   aspectRatio: "16:9" | "9:16" | "1:1";
   customBackgrounds: File[];
@@ -27,7 +28,7 @@ function getCanvasDimensions(aspectRatio: "16:9" | "9:16" | "1:1"): { width: num
   }
 }
 
-export function usePreview({ logoFile, logoSize, speed, enableVariations, enableStickerBorder, aspectRatio, customBackgrounds, isActive }: UsePreviewOptions) {
+export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableRealisticEffect, enableStickerBorder, aspectRatio, customBackgrounds, isActive }: UsePreviewOptions) {
   const [currentBgIndex, setCurrentBgIndex] = useState<number>(0);
   const [totalBackgrounds, setTotalBackgrounds] = useState<number>(37);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -35,7 +36,8 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
   const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const logoSizeRef = useRef<number>(logoSize);
   const speedRef = useRef<number>(speed);
-  const enableVariationsRef = useRef<boolean>(enableVariations);
+  const enableWiggleRef = useRef<boolean>(enableWiggle);
+  const enableRealisticEffectRef = useRef<boolean>(enableRealisticEffect);
   const enableStickerBorderRef = useRef<boolean>(enableStickerBorder);
   const aspectRatioRef = useRef<"16:9" | "9:16" | "1:1">(aspectRatio);
   const customBackgroundsRef = useRef<File[]>(customBackgrounds);
@@ -53,8 +55,12 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
   }, [speed]);
 
   useEffect(() => {
-    enableVariationsRef.current = enableVariations;
-  }, [enableVariations]);
+    enableWiggleRef.current = enableWiggle;
+  }, [enableWiggle]);
+
+  useEffect(() => {
+    enableRealisticEffectRef.current = enableRealisticEffect;
+  }, [enableRealisticEffect]);
 
   useEffect(() => {
     enableStickerBorderRef.current = enableStickerBorder;
@@ -90,13 +96,13 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
     let rotationAngle = 0;
     let positionOffsetX = 0;
     let positionOffsetY = 0;
+    let shadowOffsetX = 3;
+    let shadowOffsetY = 3;
 
-    if (enableVariationsRef.current) {
-      // Use background index to create pseudo-random but stable values per "photo"
+    // Wiggle effect - random position/rotation per background
+    if (enableWiggleRef.current) {
       const bgIndex = Math.floor(frameCount / framesPerBg);
-
-      // Simple hash function to get random-looking but deterministic values
-      const hash1 = ((bgIndex * 1237) % 100) / 100; // 0-1 range
+      const hash1 = ((bgIndex * 1237) % 100) / 100;
       const hash2 = ((bgIndex * 2749) % 100) / 100;
       const hash3 = ((bgIndex * 3571) % 100) / 100;
       const hash4 = ((bgIndex * 4919) % 100) / 100;
@@ -105,6 +111,24 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
       rotationAngle = (hash2 - 0.5) * 6; // ±3 degrees rotation
       positionOffsetX = (hash3 - 0.5) * 16; // ±8px horizontal offset
       positionOffsetY = (hash4 - 0.5) * 16; // ±8px vertical offset
+    }
+
+    // Realistic effect - shadow and scale changes synced with background
+    if (enableRealisticEffectRef.current) {
+      const bgIndex = Math.floor(frameCount / framesPerBg);
+
+      // Use hash functions for deterministic but varied values per background
+      const hash5 = ((bgIndex * 5381) % 100) / 100;
+      const hash6 = ((bgIndex * 6871) % 100) / 100;
+      const hash7 = ((bgIndex * 7919) % 100) / 100;
+
+      // Shadow position varies per background (simulating different light angles)
+      shadowOffsetX = 2 + hash5 * 6; // 2-8px
+      shadowOffsetY = 2 + hash6 * 5; // 2-7px
+
+      // Scale varies per background (simulating different photo distances)
+      const breathingScale = 0.97 + hash7 * 0.06; // 97% to 103%
+      scaleVariation *= breathingScale;
     }
 
     const logoScale = baseScale * scaleVariation;
@@ -119,17 +143,15 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
 
     // Add sticker border if enabled
     if (enableStickerBorderRef.current) {
-      const borderWidth = Math.max(4, logoWidth * 0.03); // 3% of logo width, minimum 4px
-      const borderRadius = 15; // Fixed 15px rounded corners
+      const borderWidth = Math.max(4, logoWidth * 0.03);
+      const borderRadius = 15;
 
-      // Draw white border background
       ctx.fillStyle = 'white';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = borderWidth * 2;
-      ctx.shadowOffsetX = borderWidth * 0.5;
-      ctx.shadowOffsetY = borderWidth * 0.5;
+      ctx.shadowBlur = enableRealisticEffectRef.current ? 6 + ((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100 * 6 : borderWidth * 2;
+      ctx.shadowOffsetX = shadowOffsetX * 0.5;
+      ctx.shadowOffsetY = shadowOffsetY * 0.5;
 
-      // Rounded rectangle for sticker effect
       const x = -logoWidth / 2 - borderWidth;
       const y = -logoHeight / 2 - borderWidth;
       const w = logoWidth + (borderWidth * 2);
@@ -148,17 +170,16 @@ export function usePreview({ logoFile, logoSize, speed, enableVariations, enable
       ctx.closePath();
       ctx.fill();
 
-      // Reset shadow for logo
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     } else {
-      // Original shadow for logo without border
+      // Shadow for logo without border
       ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
+      ctx.shadowBlur = enableRealisticEffectRef.current ? 5 + ((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100 * 5 : 8;
+      ctx.shadowOffsetX = shadowOffsetX;
+      ctx.shadowOffsetY = shadowOffsetY;
     }
 
     ctx.drawImage(logoImg, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);

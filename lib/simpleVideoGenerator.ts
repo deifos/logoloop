@@ -14,7 +14,8 @@ export interface SimpleVideoOptions {
   width?: number;
   height?: number;
   logoSize?: number; // Logo size as percentage (1-50)
-  enableVariations?: boolean; // Whether to enable random variations
+  enableWiggle?: boolean; // Whether to enable wiggle effect
+  enableRealisticEffect?: boolean; // Whether to enable realistic shadow/scale effect
   enableStickerBorder?: boolean; // Whether to add sticker border effect
   speed?: number; // Speed of background changes (10-100)
   onProgress?: (progress: number) => void;
@@ -37,7 +38,8 @@ export class SimpleVideoGenerator {
       width = 640,
       height = 480,
       logoSize = 15, // Default 15% size
-      enableVariations = true,
+      enableWiggle = true,
+      enableRealisticEffect = false,
       enableStickerBorder = false,
       speed = 50, // Default 50% speed
       onProgress
@@ -85,7 +87,7 @@ export class SimpleVideoGenerator {
       const backgroundPath = backgroundImages[bgIndex];
 
       // Draw frame
-      await this.drawFrame(backgroundPath, logoImage, logoSize, enableVariations, enableStickerBorder, frame, framesPerBg);
+      await this.drawFrame(backgroundPath, logoImage, logoSize, enableWiggle, enableRealisticEffect, enableStickerBorder, frame, framesPerBg);
 
       // Add frame to video
       await videoSource.add(timestamp, frameInterval);
@@ -112,7 +114,7 @@ export class SimpleVideoGenerator {
     });
   }
 
-  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableVariations: boolean, enableStickerBorder: boolean, frameIndex: number, framesPerBg: number): Promise<void> {
+  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableWiggle: boolean, enableRealisticEffect: boolean, enableStickerBorder: boolean, frameIndex: number, framesPerBg: number): Promise<void> {
     return new Promise((resolve, reject) => {
       const bgImg = new Image();
 
@@ -128,39 +130,55 @@ export class SimpleVideoGenerator {
           let srcX = 0, srcY = 0, srcW = bgImg.width, srcH = bgImg.height;
 
           if (imgAspect > canvasAspect) {
-            // Image is wider - crop sides
             srcW = bgImg.height * canvasAspect;
             srcX = (bgImg.width - srcW) / 2;
           } else {
-            // Image is taller - crop top/bottom
             srcH = bgImg.width / canvasAspect;
             srcY = (bgImg.height - srcH) / 2;
           }
 
           this.ctx.drawImage(bgImg, srcX, srcY, srcW, srcH, 0, 0, this.canvas.width, this.canvas.height);
 
-          // Draw logo with optional variations
+          // Draw logo with effects
           const baseScale = logoSizePercent / 100;
 
           let scaleVariation = 1;
           let rotationAngle = 0;
           let positionOffsetX = 0;
           let positionOffsetY = 0;
+          let shadowOffsetX = 3;
+          let shadowOffsetY = 3;
 
-          if (enableVariations) {
-            // Use background index to create pseudo-random but stable values per "photo"
+          // Wiggle effect - random position/rotation per background
+          if (enableWiggle) {
             const bgIndex = Math.floor(frameIndex / framesPerBg);
-
-            // Simple hash function to get random-looking but deterministic values
-            const hash1 = ((bgIndex * 1237) % 100) / 100; // 0-1 range
+            const hash1 = ((bgIndex * 1237) % 100) / 100;
             const hash2 = ((bgIndex * 2749) % 100) / 100;
             const hash3 = ((bgIndex * 3571) % 100) / 100;
             const hash4 = ((bgIndex * 4919) % 100) / 100;
 
-            scaleVariation = 1 + ((hash1 - 0.5) * 0.1); // ±5% size variation
-            rotationAngle = (hash2 - 0.5) * 6; // ±3 degrees rotation
-            positionOffsetX = (hash3 - 0.5) * 16; // ±8px horizontal offset
-            positionOffsetY = (hash4 - 0.5) * 16; // ±8px vertical offset
+            scaleVariation = 1 + ((hash1 - 0.5) * 0.1);
+            rotationAngle = (hash2 - 0.5) * 6;
+            positionOffsetX = (hash3 - 0.5) * 16;
+            positionOffsetY = (hash4 - 0.5) * 16;
+          }
+
+          // Realistic effect - shadow and scale changes synced with background
+          if (enableRealisticEffect) {
+            const bgIndex = Math.floor(frameIndex / framesPerBg);
+
+            // Use hash functions for deterministic but varied values per background
+            const hash5 = ((bgIndex * 5381) % 100) / 100;
+            const hash6 = ((bgIndex * 6871) % 100) / 100;
+            const hash7 = ((bgIndex * 7919) % 100) / 100;
+
+            // Shadow position varies per background (simulating different light angles)
+            shadowOffsetX = 2 + hash5 * 6; // 2-8px
+            shadowOffsetY = 2 + hash6 * 5; // 2-7px
+
+            // Scale varies per background (simulating different photo distances)
+            const breathingScale = 0.97 + hash7 * 0.06; // 97% to 103%
+            scaleVariation *= breathingScale;
           }
 
           const logoScale = baseScale * scaleVariation;
@@ -169,26 +187,20 @@ export class SimpleVideoGenerator {
           const logoX = (this.canvas.width - logoWidth) / 2 + positionOffsetX;
           const logoY = (this.canvas.height - logoHeight) / 2 + positionOffsetY;
 
-          // Save context for rotation
           this.ctx.save();
-
-          // Move to logo center for rotation
           this.ctx.translate(logoX + logoWidth / 2, logoY + logoHeight / 2);
           this.ctx.rotate(rotationAngle * Math.PI / 180);
 
-          // Add sticker border if enabled
           if (enableStickerBorder) {
-            const borderWidth = Math.max(4, logoWidth * 0.03); // 3% of logo width, minimum 4px
-            const borderRadius = 15; // Fixed 15px rounded corners
+            const borderWidth = Math.max(4, logoWidth * 0.03);
+            const borderRadius = 15;
 
-            // Draw white border background
             this.ctx.fillStyle = 'white';
             this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            this.ctx.shadowBlur = borderWidth * 2;
-            this.ctx.shadowOffsetX = borderWidth * 0.5;
-            this.ctx.shadowOffsetY = borderWidth * 0.5;
+            this.ctx.shadowBlur = enableRealisticEffect ? 6 + ((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100 * 6 : borderWidth * 2;
+            this.ctx.shadowOffsetX = shadowOffsetX * 0.5;
+            this.ctx.shadowOffsetY = shadowOffsetY * 0.5;
 
-            // Rounded rectangle for sticker effect
             const x = -logoWidth / 2 - borderWidth;
             const y = -logoHeight / 2 - borderWidth;
             const w = logoWidth + (borderWidth * 2);
@@ -207,23 +219,18 @@ export class SimpleVideoGenerator {
             this.ctx.closePath();
             this.ctx.fill();
 
-            // Reset shadow for logo
             this.ctx.shadowColor = 'transparent';
             this.ctx.shadowBlur = 0;
             this.ctx.shadowOffsetX = 0;
             this.ctx.shadowOffsetY = 0;
           } else {
-            // Original shadow for logo without border
             this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            this.ctx.shadowBlur = 8;
-            this.ctx.shadowOffsetX = 3;
-            this.ctx.shadowOffsetY = 3;
+            this.ctx.shadowBlur = enableRealisticEffect ? 5 + ((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100 * 5 : 8;
+            this.ctx.shadowOffsetX = shadowOffsetX;
+            this.ctx.shadowOffsetY = shadowOffsetY;
           }
 
-          // Draw logo (centered on rotation point)
           this.ctx.drawImage(logoImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
-
-          // Restore context
           this.ctx.restore();
 
           resolve();
