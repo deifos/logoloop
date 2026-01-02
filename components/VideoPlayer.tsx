@@ -21,7 +21,7 @@ export default function VideoPlayer({
   videoPreviewUrl,
   onDownload,
   onResetToPreview,
-  onRegenerate
+  onRegenerate,
 }: VideoPlayerProps) {
   return (
     <>
@@ -31,7 +31,9 @@ export default function VideoPlayer({
           <Spinner size="lg" color="primary" className="mb-4" />
           <p className="text-default-600 mb-2">Generating your video...</p>
           <Progress value={progress} className="w-3/4" color="primary" />
-          <p className="text-sm text-default-500 mt-2">{Math.round(progress)}% complete</p>
+          <p className="text-sm text-default-500 mt-2">
+            {Math.round(progress)}% complete
+          </p>
         </div>
       ) : videoReady && videoPreviewUrl ? (
         <video
@@ -57,18 +59,10 @@ export default function VideoPlayer({
             Download Video (.mp4)
           </Button>
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="bordered"
-              size="md"
-              onPress={onResetToPreview}
-            >
+            <Button variant="bordered" size="md" onPress={onResetToPreview}>
               Back to Preview
             </Button>
-            <Button
-              variant="bordered"
-              size="md"
-              onPress={onRegenerate}
-            >
+            <Button variant="bordered" size="md" onPress={onRegenerate}>
               Regenerate
             </Button>
           </div>

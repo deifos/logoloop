@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { SimpleVideoGenerator, getBackgroundImages, downloadVideo } from "@/lib/simpleVideoGenerator";
+import {
+  SimpleVideoGenerator,
+  getBackgroundImages,
+  downloadVideo,
+} from "@/lib/simpleVideoGenerator";
 
 export function useVideoGeneration() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [generatedVideo, setGeneratedVideo] = useState<ArrayBuffer | null>(null);
+  const [generatedVideo, setGeneratedVideo] = useState<ArrayBuffer | null>(
+    null,
+  );
   const [progress, setProgress] = useState(0);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [showingVideo, setShowingVideo] = useState<boolean>(false);
@@ -30,7 +36,7 @@ export function useVideoGeneration() {
     enableStickerBorder: boolean,
     speed: number = 50,
     aspectRatio: "16:9" | "9:16" | "1:1" = "16:9",
-    customBackgrounds: File[] = []
+    customBackgrounds: File[] = [],
   ) => {
     setIsProcessing(true);
     setShowingVideo(true);
@@ -46,7 +52,9 @@ export function useVideoGeneration() {
       // Use custom backgrounds if provided, otherwise use defaults
       let backgroundImages: string[];
       if (customBackgrounds.length > 0) {
-        backgroundImages = customBackgrounds.map(file => URL.createObjectURL(file));
+        backgroundImages = customBackgrounds.map((file) =>
+          URL.createObjectURL(file),
+        );
       } else {
         backgroundImages = getBackgroundImages();
       }
@@ -55,7 +63,7 @@ export function useVideoGeneration() {
       const dimensions = {
         "16:9": { width: 1280, height: 720 },
         "9:16": { width: 720, height: 1280 },
-        "1:1": { width: 1080, height: 1080 }
+        "1:1": { width: 1080, height: 1080 },
       }[aspectRatio];
 
       // Generate the video
@@ -72,13 +80,13 @@ export function useVideoGeneration() {
         speed: speed,
         onProgress: (progressValue) => {
           setProgress(progressValue);
-        }
+        },
       });
 
       setGeneratedVideo(videoBuffer);
 
       // Create preview URL
-      const mimeType = 'video/mp4';
+      const mimeType = "video/mp4";
       const blob = new Blob([videoBuffer], { type: mimeType });
       const previewUrl = URL.createObjectURL(blob);
       setVideoPreviewUrl(previewUrl);
@@ -87,7 +95,7 @@ export function useVideoGeneration() {
       setVideoReady(true);
       setProgress(100);
     } catch (error: any) {
-      console.error('Video generation failed:', error);
+      console.error("Video generation failed:", error);
       setIsProcessing(false);
       setShowingVideo(false);
       throw error;
@@ -116,6 +124,6 @@ export function useVideoGeneration() {
     showingVideo,
     generateVideo,
     resetToPreview,
-    handleDownloadVideo
+    handleDownloadVideo,
   };
 }

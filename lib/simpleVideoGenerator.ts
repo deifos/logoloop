@@ -4,8 +4,8 @@ import {
   WebMOutputFormat,
   BufferTarget,
   CanvasSource,
-  QUALITY_HIGH
-} from 'mediabunny';
+  QUALITY_HIGH,
+} from "mediabunny";
 
 export interface SimpleVideoOptions {
   logoFile: File;
@@ -26,8 +26,8 @@ export class SimpleVideoGenerator {
   private ctx: CanvasRenderingContext2D;
 
   constructor() {
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d')!;
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("2d")!;
   }
 
   async generateVideo(options: SimpleVideoOptions): Promise<ArrayBuffer> {
@@ -42,7 +42,7 @@ export class SimpleVideoGenerator {
       enableRealisticEffect = false,
       enableStickerBorder = false,
       speed = 50, // Default 50% speed
-      onProgress
+      onProgress,
     } = options;
 
     // Calculate frames per background based on speed (10-100)
@@ -57,7 +57,7 @@ export class SimpleVideoGenerator {
     const target = new BufferTarget();
     const output = new Output({
       format: new Mp4OutputFormat(),
-      target
+      target,
     });
 
     // Load logo
@@ -65,8 +65,8 @@ export class SimpleVideoGenerator {
 
     // Create video source with AVC/H.264 (MP4)
     const videoSource = new CanvasSource(this.canvas, {
-      codec: 'avc',
-      bitrate: QUALITY_HIGH
+      codec: "avc",
+      bitrate: QUALITY_HIGH,
     });
 
     // Add video track
@@ -87,7 +87,16 @@ export class SimpleVideoGenerator {
       const backgroundPath = backgroundImages[bgIndex];
 
       // Draw frame
-      await this.drawFrame(backgroundPath, logoImage, logoSize, enableWiggle, enableRealisticEffect, enableStickerBorder, frame, framesPerBg);
+      await this.drawFrame(
+        backgroundPath,
+        logoImage,
+        logoSize,
+        enableWiggle,
+        enableRealisticEffect,
+        enableStickerBorder,
+        frame,
+        framesPerBg,
+      );
 
       // Add frame to video
       await videoSource.add(timestamp, frameInterval);
@@ -114,7 +123,16 @@ export class SimpleVideoGenerator {
     });
   }
 
-  private async drawFrame(backgroundPath: string, logoImage: HTMLImageElement, logoSizePercent: number, enableWiggle: boolean, enableRealisticEffect: boolean, enableStickerBorder: boolean, frameIndex: number, framesPerBg: number): Promise<void> {
+  private async drawFrame(
+    backgroundPath: string,
+    logoImage: HTMLImageElement,
+    logoSizePercent: number,
+    enableWiggle: boolean,
+    enableRealisticEffect: boolean,
+    enableStickerBorder: boolean,
+    frameIndex: number,
+    framesPerBg: number,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const bgImg = new Image();
 
@@ -127,7 +145,10 @@ export class SimpleVideoGenerator {
           const imgAspect = bgImg.width / bgImg.height;
           const canvasAspect = this.canvas.width / this.canvas.height;
 
-          let srcX = 0, srcY = 0, srcW = bgImg.width, srcH = bgImg.height;
+          let srcX = 0,
+            srcY = 0,
+            srcW = bgImg.width,
+            srcH = bgImg.height;
 
           if (imgAspect > canvasAspect) {
             srcW = bgImg.height * canvasAspect;
@@ -137,7 +158,17 @@ export class SimpleVideoGenerator {
             srcY = (bgImg.height - srcH) / 2;
           }
 
-          this.ctx.drawImage(bgImg, srcX, srcY, srcW, srcH, 0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.drawImage(
+            bgImg,
+            srcX,
+            srcY,
+            srcW,
+            srcH,
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height,
+          );
 
           // Draw logo with effects
           const baseScale = logoSizePercent / 100;
@@ -157,7 +188,7 @@ export class SimpleVideoGenerator {
             const hash3 = ((bgIndex * 3571) % 100) / 100;
             const hash4 = ((bgIndex * 4919) % 100) / 100;
 
-            scaleVariation = 1 + ((hash1 - 0.5) * 0.1);
+            scaleVariation = 1 + (hash1 - 0.5) * 0.1;
             rotationAngle = (hash2 - 0.5) * 6;
             positionOffsetX = (hash3 - 0.5) * 16;
             positionOffsetY = (hash4 - 0.5) * 16;
@@ -189,29 +220,38 @@ export class SimpleVideoGenerator {
 
           this.ctx.save();
           this.ctx.translate(logoX + logoWidth / 2, logoY + logoHeight / 2);
-          this.ctx.rotate(rotationAngle * Math.PI / 180);
+          this.ctx.rotate((rotationAngle * Math.PI) / 180);
 
           if (enableStickerBorder) {
             const borderWidth = Math.max(4, logoWidth * 0.03);
             const borderRadius = 15;
 
-            this.ctx.fillStyle = 'white';
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            this.ctx.shadowBlur = enableRealisticEffect ? 6 + ((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100 * 6 : borderWidth * 2;
+            this.ctx.fillStyle = "white";
+            this.ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+            this.ctx.shadowBlur = enableRealisticEffect
+              ? 6 +
+                (((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100) *
+                  6
+              : borderWidth * 2;
             this.ctx.shadowOffsetX = shadowOffsetX * 0.5;
             this.ctx.shadowOffsetY = shadowOffsetY * 0.5;
 
             const x = -logoWidth / 2 - borderWidth;
             const y = -logoHeight / 2 - borderWidth;
-            const w = logoWidth + (borderWidth * 2);
-            const h = logoHeight + (borderWidth * 2);
+            const w = logoWidth + borderWidth * 2;
+            const h = logoHeight + borderWidth * 2;
 
             this.ctx.beginPath();
             this.ctx.moveTo(x + borderRadius, y);
             this.ctx.lineTo(x + w - borderRadius, y);
             this.ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
             this.ctx.lineTo(x + w, y + h - borderRadius);
-            this.ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
+            this.ctx.quadraticCurveTo(
+              x + w,
+              y + h,
+              x + w - borderRadius,
+              y + h,
+            );
             this.ctx.lineTo(x + borderRadius, y + h);
             this.ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
             this.ctx.lineTo(x, y + borderRadius);
@@ -219,18 +259,28 @@ export class SimpleVideoGenerator {
             this.ctx.closePath();
             this.ctx.fill();
 
-            this.ctx.shadowColor = 'transparent';
+            this.ctx.shadowColor = "transparent";
             this.ctx.shadowBlur = 0;
             this.ctx.shadowOffsetX = 0;
             this.ctx.shadowOffsetY = 0;
           } else {
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            this.ctx.shadowBlur = enableRealisticEffect ? 5 + ((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100 * 5 : 8;
+            this.ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+            this.ctx.shadowBlur = enableRealisticEffect
+              ? 5 +
+                (((Math.floor(frameIndex / framesPerBg) * 3541) % 100) / 100) *
+                  5
+              : 8;
             this.ctx.shadowOffsetX = shadowOffsetX;
             this.ctx.shadowOffsetY = shadowOffsetY;
           }
 
-          this.ctx.drawImage(logoImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+          this.ctx.drawImage(
+            logoImage,
+            -logoWidth / 2,
+            -logoHeight / 2,
+            logoWidth,
+            logoHeight,
+          );
           this.ctx.restore();
 
           resolve();
@@ -240,7 +290,7 @@ export class SimpleVideoGenerator {
       };
 
       bgImg.onerror = reject;
-      bgImg.crossOrigin = 'anonymous';
+      bgImg.crossOrigin = "anonymous";
       bgImg.src = backgroundPath;
     });
   }
@@ -255,11 +305,14 @@ export function getBackgroundImages(): string[] {
   return images;
 }
 
-export function downloadVideo(buffer: ArrayBuffer, filename: string = 'logoloop.mp4'): void {
-  const blob = new Blob([buffer], { type: 'video/mp4' });
+export function downloadVideo(
+  buffer: ArrayBuffer,
+  filename: string = "logoloop.mp4",
+): void {
+  const blob = new Blob([buffer], { type: "video/mp4" });
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);

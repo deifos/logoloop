@@ -2,7 +2,7 @@ interface XIconProps {
   className?: string;
 }
 
-export function XIcon({ className = 'w-4 h-4' }: XIconProps) {
+export function XIcon({ className = "w-4 h-4" }: XIconProps) {
   return (
     <svg
       className={className}

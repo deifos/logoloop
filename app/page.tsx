@@ -21,11 +21,15 @@ export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [logoSize, setLogoSize] = useState<number>(40);
   const [enableWiggle, setEnableWiggle] = useState<boolean>(true);
-  const [enableRealisticEffect, setEnableRealisticEffect] = useState<boolean>(false);
-  const [enableStickerBorder, setEnableStickerBorder] = useState<boolean>(false);
+  const [enableRealisticEffect, setEnableRealisticEffect] =
+    useState<boolean>(false);
+  const [enableStickerBorder, setEnableStickerBorder] =
+    useState<boolean>(false);
   const [speed, setSpeed] = useState<number>(50); // 1-100, 50 is default
   const [resizeMode, setResizeMode] = useState<boolean>(false);
-  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16" | "1:1">("9:16");
+  const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16" | "1:1">(
+    "9:16",
+  );
   const [customBackgrounds, setCustomBackgrounds] = useState<File[]>([]);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -33,9 +37,9 @@ export default function Home() {
   useEffect(() => {
     const loadDefaultLogo = async () => {
       try {
-        const response = await fetch('/logo.png');
+        const response = await fetch("/logo.png");
         const blob = await response.blob();
-        const file = new File([blob], 'logo.png', { type: 'image/png' });
+        const file = new File([blob], "logo.png", { type: "image/png" });
         setUploadedFile(file);
       } catch (error) {
         // Default logo not found, that's okay
@@ -52,11 +56,14 @@ export default function Home() {
     showingVideo,
     generateVideo,
     resetToPreview,
-    handleDownloadVideo
+    handleDownloadVideo,
   } = useVideoGeneration();
 
   const handleFileUpload = (file: File) => {
-    if (file && (file.type.startsWith("image/") || file.type === "image/svg+xml")) {
+    if (
+      file &&
+      (file.type.startsWith("image/") || file.type === "image/svg+xml")
+    ) {
       setUploadedFile(file);
       resetToPreview(); // Reset any existing video state
     }
@@ -71,7 +78,16 @@ export default function Home() {
     if (!uploadedFile) return;
 
     try {
-      await generateVideo(uploadedFile, logoSize, enableWiggle, enableRealisticEffect, enableStickerBorder, speed, aspectRatio, customBackgrounds);
+      await generateVideo(
+        uploadedFile,
+        logoSize,
+        enableWiggle,
+        enableRealisticEffect,
+        enableStickerBorder,
+        speed,
+        aspectRatio,
+        customBackgrounds,
+      );
     } catch (error: any) {
       alert(`Video generation failed: ${error.message}`);
     }
@@ -104,13 +120,14 @@ export default function Home() {
   return (
     <div className="">
       {/* Tagline */}
-      <p className="text-center text-default-500 py-4">Your logo. Infinite backgrounds.</p>
+      <p className="text-center text-default-500 py-4">
+        Your logo. Infinite backgrounds.
+      </p>
 
       {/* Main Layout */}
       <div className="max-w-[1600px] mx-auto px-4 pb-6">
         {/* Mobile: Preview First, Desktop: 3-column grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
           {/* Left Column - Configuration (Hidden on mobile) */}
           <div className="hidden lg:block lg:col-span-1 space-y-4">
             {/* Upload Section */}
@@ -121,9 +138,7 @@ export default function Home() {
             />
 
             {/* Settings Section */}
-            {uploadedFile && (
-              <SettingsPanel {...settingsPanelProps} />
-            )}
+            {uploadedFile && <SettingsPanel {...settingsPanelProps} />}
           </div>
 
           {/* Middle Column - Preview/Video (Shows first on mobile) */}
@@ -133,8 +148,13 @@ export default function Home() {
                 <div
                   className="bg-gray-100 rounded-lg overflow-hidden relative mx-auto"
                   style={{
-                    aspectRatio: aspectRatio === "16:9" ? "16/9" : aspectRatio === "9:16" ? "9/16" : "1/1",
-                    maxHeight: aspectRatio === "9:16" ? "55vh" : "auto"
+                    aspectRatio:
+                      aspectRatio === "16:9"
+                        ? "16/9"
+                        : aspectRatio === "9:16"
+                          ? "9/16"
+                          : "1/1",
+                    maxHeight: aspectRatio === "9:16" ? "55vh" : "auto",
                   }}
                 >
                   {showingVideo ? (
@@ -222,11 +242,18 @@ export default function Home() {
       </Button>
 
       {/* Mobile Settings Drawer */}
-      <Drawer isOpen={isOpen} onOpenChange={onOpenChange} placement="bottom" size="lg">
+      <Drawer
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        placement="bottom"
+        size="lg"
+      >
         <DrawerContent>
           {() => (
             <>
-              <DrawerHeader className="flex flex-col gap-1">Settings</DrawerHeader>
+              <DrawerHeader className="flex flex-col gap-1">
+                Settings
+              </DrawerHeader>
               <DrawerBody className="pb-8">
                 <div className="space-y-6">
                   {/* Logo Upload in Drawer */}

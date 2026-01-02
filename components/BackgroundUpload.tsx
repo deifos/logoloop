@@ -11,26 +11,26 @@ interface BackgroundUploadProps {
 
 export default function BackgroundUpload({
   backgrounds,
-  onBackgroundsChange
+  onBackgroundsChange,
 }: BackgroundUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<string[]>([]);
 
   // Generate preview URLs for uploaded files
   useEffect(() => {
-    const urls = backgrounds.map(file => URL.createObjectURL(file));
+    const urls = backgrounds.map((file) => URL.createObjectURL(file));
     setPreviews(urls);
 
     return () => {
-      urls.forEach(url => URL.revokeObjectURL(url));
+      urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [backgrounds]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const imageFiles = Array.from(files).filter(file =>
-        file.type.startsWith("image/")
+      const imageFiles = Array.from(files).filter((file) =>
+        file.type.startsWith("image/"),
       );
       onBackgroundsChange([...backgrounds, ...imageFiles]);
     }
@@ -54,7 +54,9 @@ export default function BackgroundUpload({
       <CardBody className="p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Custom Backgrounds</h2>
+            <h2 className="text-xl font-semibold text-foreground">
+              Custom Backgrounds
+            </h2>
             <p className="text-sm text-default-500">
               {backgrounds.length > 0
                 ? `${backgrounds.length} image${backgrounds.length > 1 ? "s" : ""} selected`

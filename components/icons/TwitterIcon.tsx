@@ -2,7 +2,7 @@ interface TwitterIconProps {
   className?: string;
 }
 
-export function TwitterIcon({ className = 'w-6 h-6' }: TwitterIconProps) {
+export function TwitterIcon({ className = "w-6 h-6" }: TwitterIconProps) {
   return (
     <svg
       className={className}

@@ -10,7 +10,11 @@ interface LogoUploadProps {
   onUploadNewLogo: () => void;
 }
 
-export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo }: LogoUploadProps) {
+export default function LogoUpload({
+  uploadedFile,
+  onFileUpload,
+  onUploadNewLogo,
+}: LogoUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -44,7 +48,9 @@ export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo
         {!uploadedFile ? (
           <div
             className={`border-2 border-dashed border-default-300 rounded-lg p-4 text-center transition-all ${
-              dragActive ? "border-primary bg-primary-50 scale-105" : "hover:border-default-400"
+              dragActive
+                ? "border-primary bg-primary-50 scale-105"
+                : "hover:border-default-400"
             }`}
             onDrop={handleDrop}
             onDragOver={(e) => {
@@ -54,8 +60,18 @@ export default function LogoUpload({ uploadedFile, onFileUpload, onUploadNewLogo
             onDragLeave={() => setDragActive(false)}
           >
             <div className="w-10 h-10 mx-auto bg-default-200 rounded-full flex items-center justify-center mb-2">
-              <svg className="w-5 h-5 text-default-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                className="w-5 h-5 text-default-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
             </div>
             <p className="text-sm text-default-500 mb-3">PNG, SVG, JPG</p>

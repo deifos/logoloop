@@ -16,7 +16,10 @@ interface UsePreviewOptions {
 }
 
 // Get canvas dimensions based on aspect ratio
-function getCanvasDimensions(aspectRatio: "16:9" | "9:16" | "1:1"): { width: number; height: number } {
+function getCanvasDimensions(aspectRatio: "16:9" | "9:16" | "1:1"): {
+  width: number;
+  height: number;
+} {
   switch (aspectRatio) {
     case "9:16":
       return { width: 720, height: 1280 };
@@ -28,7 +31,17 @@ function getCanvasDimensions(aspectRatio: "16:9" | "9:16" | "1:1"): { width: num
   }
 }
 
-export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableRealisticEffect, enableStickerBorder, aspectRatio, customBackgrounds, isActive }: UsePreviewOptions) {
+export function usePreview({
+  logoFile,
+  logoSize,
+  speed,
+  enableWiggle,
+  enableRealisticEffect,
+  enableStickerBorder,
+  aspectRatio,
+  customBackgrounds,
+  isActive,
+}: UsePreviewOptions) {
   const [currentBgIndex, setCurrentBgIndex] = useState<number>(0);
   const [totalBackgrounds, setTotalBackgrounds] = useState<number>(37);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -80,14 +93,15 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
 
   // Calculate frames per background based on speed (10-100)
   // Speed 10 = 27 frames (slow), Speed 50 = 16 frames, Speed 100 = 2 frames (fast)
-  const getFramesPerBg = () => Math.max(2, Math.round(30 - speedRef.current * 0.28));
+  const getFramesPerBg = () =>
+    Math.max(2, Math.round(30 - speedRef.current * 0.28));
 
   const drawLogoOnCanvas = (
     ctx: CanvasRenderingContext2D,
     logoImg: HTMLImageElement,
     canvasWidth: number,
     canvasHeight: number,
-    frameCount: number
+    frameCount: number,
   ) => {
     const baseScale = logoSizeRef.current / 100;
     const framesPerBg = getFramesPerBg();
@@ -107,7 +121,7 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
       const hash3 = ((bgIndex * 3571) % 100) / 100;
       const hash4 = ((bgIndex * 4919) % 100) / 100;
 
-      scaleVariation = 1 + ((hash1 - 0.5) * 0.1); // ±5% size variation
+      scaleVariation = 1 + (hash1 - 0.5) * 0.1; // ±5% size variation
       rotationAngle = (hash2 - 0.5) * 6; // ±3 degrees rotation
       positionOffsetX = (hash3 - 0.5) * 16; // ±8px horizontal offset
       positionOffsetY = (hash4 - 0.5) * 16; // ±8px vertical offset
@@ -139,23 +153,25 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
 
     ctx.save();
     ctx.translate(logoX + logoWidth / 2, logoY + logoHeight / 2);
-    ctx.rotate(rotationAngle * Math.PI / 180);
+    ctx.rotate((rotationAngle * Math.PI) / 180);
 
     // Add sticker border if enabled
     if (enableStickerBorderRef.current) {
       const borderWidth = Math.max(4, logoWidth * 0.03);
       const borderRadius = 15;
 
-      ctx.fillStyle = 'white';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = enableRealisticEffectRef.current ? 6 + ((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100 * 6 : borderWidth * 2;
+      ctx.fillStyle = "white";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+      ctx.shadowBlur = enableRealisticEffectRef.current
+        ? 6 + (((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100) * 6
+        : borderWidth * 2;
       ctx.shadowOffsetX = shadowOffsetX * 0.5;
       ctx.shadowOffsetY = shadowOffsetY * 0.5;
 
       const x = -logoWidth / 2 - borderWidth;
       const y = -logoHeight / 2 - borderWidth;
-      const w = logoWidth + (borderWidth * 2);
-      const h = logoHeight + (borderWidth * 2);
+      const w = logoWidth + borderWidth * 2;
+      const h = logoHeight + borderWidth * 2;
 
       ctx.beginPath();
       ctx.moveTo(x + borderRadius, y);
@@ -170,31 +186,39 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
       ctx.closePath();
       ctx.fill();
 
-      ctx.shadowColor = 'transparent';
+      ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     } else {
       // Shadow for logo without border
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-      ctx.shadowBlur = enableRealisticEffectRef.current ? 5 + ((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100 * 5 : 8;
+      ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+      ctx.shadowBlur = enableRealisticEffectRef.current
+        ? 5 + (((Math.floor(frameCount / framesPerBg) * 3541) % 100) / 100) * 5
+        : 8;
       ctx.shadowOffsetX = shadowOffsetX;
       ctx.shadowOffsetY = shadowOffsetY;
     }
 
-    ctx.drawImage(logoImg, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+    ctx.drawImage(
+      logoImg,
+      -logoWidth / 2,
+      -logoHeight / 2,
+      logoWidth,
+      logoHeight,
+    );
     ctx.restore();
   };
 
   const startPreview = async (file: File, customBgs: File[]) => {
     stopPreview();
     const { width, height } = getCanvasDimensions(aspectRatioRef.current);
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     previewCanvasRef.current = canvas;
 
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext("2d")!;
 
     // Determine which backgrounds to use
     const useCustomBackgrounds = customBgs.length > 0;
@@ -212,7 +236,7 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
             // Fallback if decode fails
           }
           return img;
-        })
+        }),
       );
     } else {
       // Preload default background images
@@ -220,7 +244,7 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
       preloadedBackgrounds = await Promise.all(
         backgroundImagePaths.map(async (src) => {
           const img = new Image();
-          img.crossOrigin = 'anonymous';
+          img.crossOrigin = "anonymous";
           img.src = src;
           try {
             await img.decode();
@@ -228,7 +252,7 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
             // Fallback if decode fails
           }
           return img;
-        })
+        }),
       );
     }
 
@@ -243,13 +267,17 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
       const renderFrame = (timestamp: number) => {
         // Throttle to ~30fps for consistent timing
         if (timestamp - lastFrameTime < frameInterval) {
-          previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
+          previewIntervalRef.current = requestAnimationFrame(
+            renderFrame,
+          ) as unknown as NodeJS.Timeout;
           return;
         }
         lastFrameTime = timestamp;
 
         const framesPerBg = getFramesPerBg();
-        const bgIndex = Math.floor(frameCountRef.current / framesPerBg) % preloadedBackgrounds.length;
+        const bgIndex =
+          Math.floor(frameCountRef.current / framesPerBg) %
+          preloadedBackgrounds.length;
 
         // Only update React state when background actually changes
         if (bgIndex !== lastBgIndexRef.current) {
@@ -266,7 +294,10 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
         const imgAspect = bgImg.width / bgImg.height;
         const canvasAspect = canvas.width / canvas.height;
 
-        let srcX = 0, srcY = 0, srcW = bgImg.width, srcH = bgImg.height;
+        let srcX = 0,
+          srcY = 0,
+          srcW = bgImg.width,
+          srcH = bgImg.height;
 
         if (imgAspect > canvasAspect) {
           // Image is wider - crop sides
@@ -278,12 +309,28 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
           srcY = (bgImg.height - srcH) / 2;
         }
 
-        ctx.drawImage(bgImg, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          bgImg,
+          srcX,
+          srcY,
+          srcW,
+          srcH,
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
 
-        drawLogoOnCanvas(ctx, logoImg, canvas.width, canvas.height, frameCountRef.current);
+        drawLogoOnCanvas(
+          ctx,
+          logoImg,
+          canvas.width,
+          canvas.height,
+          frameCountRef.current,
+        );
 
         if (displayCanvasRef.current) {
-          const displayCtx = displayCanvasRef.current.getContext('2d');
+          const displayCtx = displayCanvasRef.current.getContext("2d");
           if (displayCtx) {
             displayCanvasRef.current.width = canvas.width;
             displayCanvasRef.current.height = canvas.height;
@@ -296,10 +343,14 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
           frameCountRef.current++;
         }
 
-        previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
+        previewIntervalRef.current = requestAnimationFrame(
+          renderFrame,
+        ) as unknown as NodeJS.Timeout;
       };
 
-      previewIntervalRef.current = requestAnimationFrame(renderFrame) as unknown as NodeJS.Timeout;
+      previewIntervalRef.current = requestAnimationFrame(
+        renderFrame,
+      ) as unknown as NodeJS.Timeout;
     };
     logoImg.src = URL.createObjectURL(file);
   };
@@ -332,6 +383,6 @@ export function usePreview({ logoFile, logoSize, speed, enableWiggle, enableReal
     displayCanvasRef,
     currentBgIndex,
     totalBackgrounds,
-    stopPreview
+    stopPreview,
   };
 }

@@ -1,7 +1,7 @@
-import Image from 'next/image';
-import { Link } from '@heroui/link';
-import { XIcon } from './icons/XIcon';
-import { BuyMeACoffee } from './BuyMeACoffee';
+import Image from "next/image";
+import { Link } from "@heroui/link";
+import { XIcon } from "./icons/XIcon";
+import { BuyMeACoffee } from "./BuyMeACoffee";
 
 export function Footer() {
   return (
@@ -11,7 +11,9 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl font-bold text-foreground">LogoLoop</span>
+              <span className="text-xl font-bold text-foreground">
+                LogoLoop
+              </span>
             </div>
             <p className="text-sm text-default-600 mb-4 max-w-sm">
               Inspired on a video I saw on instagram.
@@ -36,12 +38,14 @@ export function Footer() {
               <BuyMeACoffee />
             </div>
           </div>
-         
+
           {/* Other Projects Column */}
           <div></div>
           <div></div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Other Projects</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">
+              Other Projects
+            </h3>
             <div className="space-y-2">
               <Link
                 isExternal

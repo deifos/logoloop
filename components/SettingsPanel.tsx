@@ -41,7 +41,7 @@ export default function SettingsPanel({
   onStickerBorderChange,
   onResizeModeChange,
   onAspectRatioChange,
-  onGenerateVideo
+  onGenerateVideo,
 }: SettingsPanelProps) {
   const handleSpeedChange = (value: number | number[]) => {
     const newSpeed = Array.isArray(value) ? value[0] : value;
@@ -74,7 +74,10 @@ export default function SettingsPanel({
           {/* Resize Logo Mode */}
           <div className="flex justify-between items-center py-1">
             <p className="text-sm font-medium text-foreground">
-              Resize Logo {resizeMode && <span className="text-default-500">({logoSize}%)</span>}
+              Resize Logo{" "}
+              {resizeMode && (
+                <span className="text-default-500">({logoSize}%)</span>
+              )}
             </p>
             <Switch
               size="sm"
@@ -97,7 +100,9 @@ export default function SettingsPanel({
 
           {/* Realistic Effect */}
           <div className="flex justify-between items-center py-1">
-            <p className="text-sm font-medium text-foreground">Dynamic Shadow</p>
+            <p className="text-sm font-medium text-foreground">
+              Dynamic Shadow
+            </p>
             <Switch
               size="sm"
               isSelected={enableRealisticEffect}
@@ -108,7 +113,9 @@ export default function SettingsPanel({
 
           {/* Sticker Border */}
           <div className="flex justify-between items-center py-1">
-            <p className="text-sm font-medium text-foreground">Sticker Border</p>
+            <p className="text-sm font-medium text-foreground">
+              Sticker Border
+            </p>
             <Switch
               size="sm"
               isSelected={enableStickerBorder}
@@ -119,7 +126,9 @@ export default function SettingsPanel({
 
           {/* Aspect Ratio */}
           <div>
-            <p className="text-sm font-medium text-foreground mb-2">Aspect Ratio</p>
+            <p className="text-sm font-medium text-foreground mb-2">
+              Aspect Ratio
+            </p>
             <ButtonGroup className="w-full" size="sm">
               <Button
                 className="flex-1"
