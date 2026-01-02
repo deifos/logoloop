@@ -97,9 +97,9 @@ export default function PreviewCanvas({
     };
   }, [logoSize, displayCanvasRef, logoDimensions]);
 
-  // Handle mouse down
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  // Handle pointer down (works for both mouse and touch)
+  const handlePointerDown = useCallback(
+    (clientX: number, clientY: number) => {
       if (!resizeMode) return;
 
       const bounds = getLogoBounds();
@@ -113,29 +113,49 @@ export default function PreviewCanvas({
         { x: bounds.left + bounds.width, y: bounds.top + bounds.height },
       ];
 
-      const hitRadius = 30;
+      const hitRadius = 40; // Larger hit radius for touch
       const isNearCorner = corners.some((corner) => {
-        const dx = e.clientX - corner.x;
-        const dy = e.clientY - corner.y;
+        const dx = clientX - corner.x;
+        const dy = clientY - corner.y;
         return Math.sqrt(dx * dx + dy * dy) < hitRadius;
       });
 
       if (isNearCorner) {
         setIsDragging(true);
         dragStartRef.current = {
-          x: e.clientX,
-          y: e.clientY,
+          x: clientX,
+          y: clientY,
           size: logoSize,
         };
-        e.preventDefault();
       }
     },
     [resizeMode, getLogoBounds, logoSize],
   );
 
-  // Handle mouse move
-  const handleMouseMove = useCallback(
+  // Handle mouse down
+  const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      handlePointerDown(e.clientX, e.clientY);
+      if (resizeMode) e.preventDefault();
+    },
+    [handlePointerDown, resizeMode],
+  );
+
+  // Handle touch start
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        handlePointerDown(touch.clientX, touch.clientY);
+        if (resizeMode) e.preventDefault();
+      }
+    },
+    [handlePointerDown, resizeMode],
+  );
+
+  // Handle pointer move (works for both mouse and touch)
+  const handlePointerMove = useCallback(
+    (clientX: number, clientY: number) => {
       if (!resizeMode || !isDragging || !dragStartRef.current) return;
 
       const bounds = getLogoBounds();
@@ -147,8 +167,8 @@ export default function PreviewCanvas({
           Math.pow(dragStartRef.current.y - bounds.centerY, 2),
       );
       const currentDist = Math.sqrt(
-        Math.pow(e.clientX - bounds.centerX, 2) +
-          Math.pow(e.clientY - bounds.centerY, 2),
+        Math.pow(clientX - bounds.centerX, 2) +
+          Math.pow(clientY - bounds.centerY, 2),
       );
 
       const scale = currentDist / startDist;
@@ -162,20 +182,51 @@ export default function PreviewCanvas({
     [resizeMode, isDragging, getLogoBounds, onLogoSizeChange],
   );
 
-  // Handle mouse up
-  const handleMouseUp = useCallback(() => {
+  // Handle mouse move
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      handlePointerMove(e.clientX, e.clientY);
+    },
+    [handlePointerMove],
+  );
+
+  // Handle touch move
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1 && isDragging) {
+        const touch = e.touches[0];
+        handlePointerMove(touch.clientX, touch.clientY);
+        e.preventDefault();
+      }
+    },
+    [handlePointerMove, isDragging],
+  );
+
+  // Handle pointer up (works for both mouse and touch)
+  const handlePointerUp = useCallback(() => {
     setIsDragging(false);
     dragStartRef.current = null;
   }, []);
 
-  // Global mouse up listener
+  // Handle mouse up
+  const handleMouseUp = useCallback(() => {
+    handlePointerUp();
+  }, [handlePointerUp]);
+
+  // Handle touch end
+  const handleTouchEnd = useCallback(() => {
+    handlePointerUp();
+  }, [handlePointerUp]);
+
+  // Global pointer up/move listeners (mouse and touch)
   useEffect(() => {
     if (isDragging) {
-      const handleGlobalMouseUp = () => {
+      const handleGlobalPointerUp = () => {
         setIsDragging(false);
         dragStartRef.current = null;
       };
-      const handleGlobalMouseMove = (e: MouseEvent) => {
+
+      const handleGlobalPointerMove = (clientX: number, clientY: number) => {
         if (!dragStartRef.current) return;
 
         const bounds = getLogoBounds();
@@ -186,8 +237,8 @@ export default function PreviewCanvas({
             Math.pow(dragStartRef.current.y - bounds.centerY, 2),
         );
         const currentDist = Math.sqrt(
-          Math.pow(e.clientX - bounds.centerX, 2) +
-            Math.pow(e.clientY - bounds.centerY, 2),
+          Math.pow(clientX - bounds.centerX, 2) +
+            Math.pow(clientY - bounds.centerY, 2),
         );
 
         const scale = currentDist / startDist;
@@ -199,11 +250,32 @@ export default function PreviewCanvas({
         onLogoSizeChange(newSize);
       };
 
-      window.addEventListener("mouseup", handleGlobalMouseUp);
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        handleGlobalPointerMove(e.clientX, e.clientY);
+      };
+
+      const handleGlobalTouchMove = (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          handleGlobalPointerMove(touch.clientX, touch.clientY);
+          e.preventDefault();
+        }
+      };
+
+      window.addEventListener("mouseup", handleGlobalPointerUp);
       window.addEventListener("mousemove", handleGlobalMouseMove);
+      window.addEventListener("touchend", handleGlobalPointerUp);
+      window.addEventListener("touchcancel", handleGlobalPointerUp);
+      window.addEventListener("touchmove", handleGlobalTouchMove, {
+        passive: false,
+      });
+
       return () => {
-        window.removeEventListener("mouseup", handleGlobalMouseUp);
+        window.removeEventListener("mouseup", handleGlobalPointerUp);
         window.removeEventListener("mousemove", handleGlobalMouseMove);
+        window.removeEventListener("touchend", handleGlobalPointerUp);
+        window.removeEventListener("touchcancel", handleGlobalPointerUp);
+        window.removeEventListener("touchmove", handleGlobalTouchMove);
       };
     }
   }, [isDragging, getLogoBounds, onLogoSizeChange]);
@@ -234,10 +306,13 @@ export default function PreviewCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full"
+      className="relative w-full h-full touch-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{
         cursor: resizeMode
           ? isDragging
@@ -363,14 +438,14 @@ function CornerHandles({
         />
       )}
 
-      {/* Corner handles */}
+      {/* Corner handles - larger for touch */}
       {positions.map((pos, i) => (
         <div
           key={i}
-          className="absolute w-5 h-5 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize shadow-lg"
+          className="absolute w-8 h-8 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize shadow-lg"
           style={{
-            left: pos.x - 10,
-            top: pos.y - 10,
+            left: pos.x - 16,
+            top: pos.y - 16,
           }}
         />
       ))}

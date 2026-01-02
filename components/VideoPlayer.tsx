@@ -27,10 +27,12 @@ export default function VideoPlayer({
     <>
       {/* Video Generation/Result View */}
       {isProcessing ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-default-100">
           <Spinner size="lg" color="primary" className="mb-4" />
-          <p className="text-default-600 mb-2">Generating your video...</p>
-          <Progress value={progress} className="w-3/4" color="primary" />
+          <p className="text-foreground font-medium mb-2">
+            Generating your video...
+          </p>
+          <Progress value={progress} className="w-3/4 max-w-xs" color="primary" />
           <p className="text-sm text-default-500 mt-2">
             {Math.round(progress)}% complete
           </p>

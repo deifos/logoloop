@@ -146,7 +146,7 @@ export default function Home() {
             <Card className="h-full">
               <CardBody className="p-4">
                 <div
-                  className="bg-gray-100 rounded-lg overflow-hidden relative mx-auto"
+                  className="bg-default-100 rounded-lg overflow-hidden relative mx-auto"
                   style={{
                     aspectRatio:
                       aspectRatio === "16:9"
