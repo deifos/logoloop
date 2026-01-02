@@ -198,9 +198,9 @@ export default function Home() {
               </Button>
             )}
 
-            {/* Mobile Download Button - shown when video is ready */}
+            {/* Download Button - shown when video is ready */}
             {videoReady && !isProcessing && (
-              <div className="mt-4 space-y-3 lg:hidden">
+              <div className="mt-4 space-y-3">
                 <Button
                   color="primary"
                   size="lg"
