@@ -197,6 +197,36 @@ export default function Home() {
                 {isProcessing ? "Generating..." : "Generate Video"}
               </Button>
             )}
+
+            {/* Mobile Download Button - shown when video is ready */}
+            {videoReady && !isProcessing && (
+              <div className="mt-4 space-y-3 lg:hidden">
+                <Button
+                  color="primary"
+                  size="lg"
+                  className="w-full"
+                  onPress={handleDownloadVideo}
+                >
+                  Download Video (.mp4)
+                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    size="md"
+                    variant="bordered"
+                    onPress={resetToPreview}
+                  >
+                    Back to Preview
+                  </Button>
+                  <Button
+                    size="md"
+                    variant="bordered"
+                    onPress={handleRegenerate}
+                  >
+                    Regenerate
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column - Backgrounds (Hidden on mobile) */}
